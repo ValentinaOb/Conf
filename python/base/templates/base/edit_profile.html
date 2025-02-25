@@ -1,0 +1,116 @@
+<html lang="zxx">
+    
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Manup Template">
+    <meta name="keywords" content="Manup, unica, creative, html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>PCSCE</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css?family=Work+Sans:400,500,600,700,800,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap" rel="stylesheet">
+
+    <link rel="icon" type="image/x-icon" href="{% static 'img/logo.svg' %}"  style="border-radius: 50%;">
+
+    <!-- Css Styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!---->
+
+    <link rel="stylesheet" href="{% static 'css/edit_profile.css' %}" type="text/css">
+</head>
+
+
+<div class="wrapper bg-white mt-sm-5">
+    <h4 class="pb-4 border-bottom">Account settings</h4>
+    <div class="d-flex align-items-start py-3 border-bottom">
+        <img src="{{user_data.avatar.url}}"
+            class="img" alt="">
+    </div>
+            <b>Profile Photo</b>
+            <p>Accepted file type .jpg. Less than 1MB</p>
+            
+    <form action="{% url 'edit_profile' %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% if user_data.firstname != None %}
+            <label for="file">Edit Avatar</label>
+            <input type="file" id="avatar" name="avatar"accept="image/jpg, image/png"><br>
+              
+            <label for="username">Username</label>
+            <input type="text" class="bg-light form-control" id="username" name="username" value={{user.username}}><br>
+            
+            <label for="firstname" >Firstname</label>
+            <input type="text" id="firstname" name="firstname" value="{{user_data.firstname}}"><br>
+
+            <label for="lastname">Lastname</label>
+            <input type="text" id="lastname" name="lastname" value="{{user_data.lastname}}"><br>
+
+            <label for="job">Job</label>
+            <input type="text" id="job" name="job" value="{{user_data.job}}"><br>
+
+            <label for="email">Email Address</label>
+            <input type="text" class="bg-light form-control" value="{{user.email}}" id="email" name="email"><br>
+
+            <label for="phone">Phone Number</label>
+            <input type="tel" class="bg-light form-control" id="phone" name="phone" value="{{user_data.phone}}"><br>
+            {% else %}
+            <label for="file">Edit Avatar</label>
+            <input type="file" id="avatar" name="avatar"accept="image/jpg, image/png"><br>
+              
+            <label for="username">Username</label>
+            <input type="text" class="bg-light form-control" value="{{user.username}}" id="username" name="username"><br>
+            
+            <label for="firstname" >Firstname</label><br>
+            <input type="text" id="firstname" name="firstname"><br><br>
+
+            <label for="lastname">Lastname</label>
+            <input type="text" id="lastname" name="lastname"><br>
+
+            <label for="job">Job</label>
+            <input type="text" id="job" name="job"><br>
+
+            <label for="email">Email Address</label>
+            <input type="text" class="bg-light form-control" value="{{user.email}}" id="email" name="email"><br>
+
+            <label for="phone">Phone Number</label>
+            <input type="tel" class="bg-light form-control" id="phone" name="phone"><br>
+            {% endif %}
+
+            <label for="country">Country</label>
+            <select name="country" id="country" class="bg-light" value="{{user_data.country}}">
+                <option value="ukr">Ukraine</option>
+                <option value="czch">Czechia</option>
+                <option value="slv">Slovakia</option>
+                <option value="rmn">Romania</option>
+                <option value="plsh">Polish</option>
+                <option value="usa">USA</option>
+                <option value="uk">UK</option>
+            </select><br>
+            <label for="language">Language</label>
+            <select name="language" id="language" class="bg-light" value="{{user_data.language}}">
+                <option value="english" selected>English</option>
+                <option value="ukrainian">Ukrainian</option>
+            </select><br>
+            <button class="btn btn-primary mr-3" type="submit">Save Changes</button>
+        </form>
+
+            <a href="{% url 'home' %}">Cancel</a><br>
+        
+            <a href="{% url 'change_password' %}" name="change_password">Change password</a>
+        <div class="d-sm-flex align-items-center pt-3" id="deactivate">
+            <div>
+                <b>Deactivate your account</b>
+                <p>Details about your company account and password</p>
+            </div>
+            <form action="{% url 'deactivate_account' %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <button type="submit">Deactivate</button>
+            </form>
+        </div>
+    
+    </div>
+</div>
+</html>

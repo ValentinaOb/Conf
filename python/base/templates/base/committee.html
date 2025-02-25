@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="zxx">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Manup Template">
+    <meta name="keywords" content="Manup, unica, creative, html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>PCSCE</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css?family=Work+Sans:400,500,600,700,800,900&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap" rel="stylesheet">
+
+    <link rel="icon" type="image/x-icon" href="{% static 'img/logo.svg' %}"  style="border-radius: 50%;">
+
+    <!-- Css Styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!---->
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/elegant-icons.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/magnific-popup.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/slicknav.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}" type="text/css">
+</head>
+
+<body>
+    <!-- Page Preloder 
+    <div id="preloder">
+        <div class="loader"></div>
+    </div>-->
+
+    <!-- Header Section Begin -->
+    {% if user_data%}
+    <header class="header-section">
+   
+        <div class="container">
+            <div class="logo">
+                <a href= '/'> 
+                    <img src="{% static 'img/logo.svg' %}" style="width: 45px;" alt="">
+                </a>
+            </div>
+            <div class="nav-menu">
+                <nav class="mainmenu mobile-menu">
+                    <ul>
+                        <li><a href= '/'>Home</a></li>
+                        <li><a href="{% url 'upload' %}">Submition</a></li>
+                        <li><a href="{% url 'about' %}">About</a></li>
+                        <li class="active"><a href="{% url 'committee' %}">Committee</a>
+                        </li>
+                        <li><a href="{% url 'schedule' %}">Schedule</a></li>
+                        <li><a href="{% url 'contact' %}">Contacts</a></li>
+                    </ul>
+                </nav>
+                <div class="action" id="action">
+                    <div class="profile" id="profile">
+                        <img src="{{ user_data.avatar.url }}" alt="User Avatar" />
+                    </div>
+                    <div class="menu" id="menu">
+                        <h2>{{ user.username }}</h2>
+                        <h3>{{ user_data.firstname }} {{ user_data.lastname }} <br />
+                            <span>{{ user_data.job }}</span></h3>
+                        <ul>
+                            <li><i class="fa fa-edit"></i> <a href="{% url 'edit_profile' %}">Edit Profile</a></li>
+                            <li><i class="fa fa-envelope"></i> <a href="#">Notification</a></li>
+                            <li><i class="fa fa-sign-out-alt"></i> <a href="{% url 'logout' %}">Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+            </div>
+            <div id="mobile-menu-wrap"></div>
+        </div>
+
+    </header>
+    {% else %}
+    <header class="header-section">
+        <div class="container">
+            <div class="logo">
+                <a href= '/'>
+                    <img src="{% static 'img/logo.svg' %}" style="width: 45px;" alt="">
+                </a>
+            </div>
+            <div class="nav-menu">
+                <nav class="mainmenu mobile-menu">
+                    <ul>
+                        <li><a href= '/'>Home</a></li>
+                        <li><a href="{% url 'about' %}">About</a></li>
+                        <li class="active"><a href="{% url 'committee' %}">Committee</a>
+                        </li>
+                        <li><a href="{% url 'schedule' %}">Schedule</a></li>
+                        <!--<li><a href="./blog.html">Blog</a></li>-->
+                        <li><a href="{% url 'contact' %}">Contacts</a></li>
+                    </ul>
+                </nav>
+                <a href="{% url 'sign' %}" class="top-btn-pr">Join us</a>
+            </div>
+            <div id="mobile-menu-wrap"></div>
+        </div>
+    </header>
+    {% endif %}
+    <!-- Header End -->
+
+    <!-- Breadcrumb Section Begin -->
+    <section class="breadcrumb-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="breadcrumb-text">
+                        <h2>Feature Committee</h2>
+                        <div class="bt-option">
+                            <a href='/'>Home</a>
+                            <span>Our Committee</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Breadcrumb Section End -->
+
+    <!-- Speaker Section Begin -->
+    <section class="speaker-section spad">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="speaker-item">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="si-pic">
+                                    <img src="{% static 'img/speakers/speaker-1.jpg' %}" alt="">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="si-text">
+                                    <div class="si-title">
+                                        <h4>Jayden Gill</h4>
+                                        <span>Speaker</span>
+                                    </div>
+                                    <div class="si-social">
+                                        <a href="#"><i class="fa fa-facebook"></i></a>
+                                        <a href="#"><i class="fa fa-twitter"></i></a>
+                                        <a href="#"><i class="fa fa-google-plus"></i></a>
+                                    </div>
+                                    <p>Businesses often become known today through effective marketing. The marketing
+                                        may be in the form of a regular news item or half column society news in the
+                                        Sunday newspaper.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="speaker-item">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="si-pic">
+                                    <img src="{% static 'img/speakers/speaker-2.jpg' %}" alt="">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="si-text">
+                                    <div class="si-title">
+                                        <h4>Mary Jane</h4>
+                                        <span>Speaker</span>
+                                    </div>
+                                    <div class="si-social">
+                                        <a href="#"><i class="fa fa-facebook"></i></a>
+                                        <a href="#"><i class="fa fa-twitter"></i></a>
+                                        <a href="#"><i class="fa fa-google-plus"></i></a>
+                                    </div>
+                                    <p>Businesses often become known today through effective marketing. The marketing
+                                        may be in the form of a regular news item or half column society news in the
+                                        Sunday newspaper.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="speaker-item">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="si-pic">
+                                    <img src="{% static 'img/speakers/speaker-3.jpg' %}" alt="">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="si-text">
+                                    <div class="si-title">
+                                        <h4>Jack Human</h4>
+                                        <span>Manager</span>
+                                    </div>
+                                    <div class="si-social">
+                                        <a href="#"><i class="fa fa-facebook"></i></a>
+                                        <a href="#"><i class="fa fa-twitter"></i></a>
+                                        <a href="#"><i class="fa fa-google-plus"></i></a>
+                                    </div>
+                                    <p>Businesses often become known today through effective marketing. The marketing
+                                        may be in the form of a regular news item or half column society news in the
+                                        Sunday newspaper.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="speaker-item">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="si-pic">
+                                    <img src="{% static 'img/speakers/speaker-4.jpg' %}" alt="">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="si-text">
+                                    <div class="si-title">
+                                        <h4>Sara Brudt</h4>
+                                        <span>Speaker</span>
+                                    </div>
+                                    <div class="si-social">
+                                        <a href="#"><i class="fa fa-facebook"></i></a>
+                                        <a href="#"><i class="fa fa-twitter"></i></a>
+                                        <a href="#"><i class="fa fa-google-plus"></i></a>
+                                    </div>
+                                    <p>Businesses often become known today through effective marketing. The marketing
+                                        may be in the form of a regular news item or half column society news in the
+                                        Sunday newspaper.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="speaker-item">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="si-pic">
+                                    <img src="{% static 'img/speakers/speaker-5.jpg' %}" alt="">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="si-text">
+                                    <div class="si-title">
+                                        <h4>Emma Sandoval </h4>
+                                        <span>CEO</span>
+                                    </div>
+                                    <div class="si-social">
+                                        <a href="#"><i class="fa fa-facebook"></i></a>
+                                        <a href="#"><i class="fa fa-twitter"></i></a>
+                                        <a href="#"><i class="fa fa-google-plus"></i></a>
+                                    </div>
+                                    <p>Businesses often become known today through effective marketing. The marketing
+                                        may be in the form of a regular news item or half column society news in the
+                                        Sunday newspaper.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="speaker-item">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="si-pic">
+                                    <img src="{% static 'img/speakers/speaker-6.jpg' %}" alt="">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="si-text">
+                                    <div class="si-title">
+                                        <h4>Harriet Freeman</h4>
+                                        <span>Marketing Manager</span>
+                                    </div>
+                                    <div class="si-social">
+                                        <a href="#"><i class="fa fa-facebook"></i></a>
+                                        <a href="#"><i class="fa fa-twitter"></i></a>
+                                        <a href="#"><i class="fa fa-google-plus"></i></a>
+                                    </div>
+                                    <p>Businesses often become known today through effective marketing. The marketing
+                                        may be in the form of a regular news item or half column society news in the
+                                        Sunday newspaper.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="load-more">
+                <a href="#loa" class="primary-btn">Load More</a>
+            </div>
+            <div id="loa" class="row">
+                <div class="col-sm-6">
+                    <div class="speaker-item">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="si-pic">
+                                    <img src="{% static 'img/speakers/speaker-1.jpg' %}" alt="">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="si-text">
+                                    <div class="si-title">
+                                        <h4>Jayden Gill</h4>
+                                        <span>Speaker</span>
+                                    </div>
+                                    <div class="si-social">
+                                        <a href="#"><i class="fa fa-facebook"></i></a>
+                                        <a href="#"><i class="fa fa-twitter"></i></a>
+                                        <a href="#"><i class="fa fa-google-plus"></i></a>
+                                    </div>
+                                    <p>Businesses often become known today through effective marketing. The marketing
+                                        may be in the form of a regular news item or half column society news in the
+                                        Sunday newspaper.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="speaker-item">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="si-pic">
+                                    <img src="{% static 'img/speakers/speaker-2.jpg' %}" alt="">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="si-text">
+                                    <div class="si-title">
+                                        <h4>Mary Jane</h4>
+                                        <span>Speaker</span>
+                                    </div>
+                                    <div class="si-social">
+                                        <a href="#"><i class="fa fa-facebook"></i></a>
+                                        <a href="#"><i class="fa fa-twitter"></i></a>
+                                        <a href="#"><i class="fa fa-google-plus"></i></a>
+                                    </div>
+                                    <p>Businesses often become known today through effective marketing. The marketing
+                                        may be in the form of a regular news item or half column society news in the
+                                        Sunday newspaper.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="speaker-item">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="si-pic">
+                                    <img src="{% static 'img/speakers/speaker-3.jpg' %}" alt="">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="si-text">
+                                    <div class="si-title">
+                                        <h4>Jack Human</h4>
+                                        <span>Manager</span>
+                                    </div>
+                                    <div class="si-social">
+                                        <a href="#"><i class="fa fa-facebook"></i></a>
+                                        <a href="#"><i class="fa fa-twitter"></i></a>
+                                        <a href="#"><i class="fa fa-google-plus"></i></a>
+                                    </div>
+                                    <p>Businesses often become known today through effective marketing. The marketing
+                                        may be in the form of a regular news item or half column society news in the
+                                        Sunday newspaper.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="speaker-item">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="si-pic">
+                                    <img src="{% static 'img/speakers/speaker-4.jpg' %}" alt="">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="si-text">
+                                    <div class="si-title">
+                                        <h4>Sara Brudt</h4>
+                                        <span>Speaker</span>
+                                    </div>
+                                    <div class="si-social">
+                                        <a href="#"><i class="fa fa-facebook"></i></a>
+                                        <a href="#"><i class="fa fa-twitter"></i></a>
+                                        <a href="#"><i class="fa fa-google-plus"></i></a>
+                                    </div>
+                                    <p>Businesses often become known today through effective marketing. The marketing
+                                        may be in the form of a regular news item or half column society news in the
+                                        Sunday newspaper.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="speaker-item">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="si-pic">
+                                    <img src="{% static 'img/speakers/speaker-5.jpg' %}" alt="">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="si-text">
+                                    <div class="si-title">
+                                        <h4>Emma Sandoval </h4>
+                                        <span>CEO</span>
+                                    </div>
+                                    <div class="si-social">
+                                        <a href="#"><i class="fa fa-facebook"></i></a>
+                                        <a href="#"><i class="fa fa-twitter"></i></a>
+                                        <a href="#"><i class="fa fa-google-plus"></i></a>
+                                    </div>
+                                    <p>Businesses often become known today through effective marketing. The marketing
+                                        may be in the form of a regular news item or half column society news in the
+                                        Sunday newspaper.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="speaker-item">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="si-pic">
+                                    <img src="{% static 'img/speakers/speaker-6.jpg' %}" alt="">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="si-text">
+                                    <div class="si-title">
+                                        <h4>Harriet Freeman</h4>
+                                        <span>Marketing Manager</span>
+                                    </div>
+                                    <div class="si-social">
+                                        <a href="#"><i class="fa fa-facebook"></i></a>
+                                        <a href="#"><i class="fa fa-twitter"></i></a>
+                                        <a href="#"><i class="fa fa-google-plus"></i></a>
+                                    </div>
+                                    <p>Businesses often become known today through effective marketing. The marketing
+                                        may be in the form of a regular news item or half column society news in the
+                                        Sunday newspaper.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Speaker Section End -->
+
+    <!-- Newslatter Section Begin -->
+    <section class="newslatter-section about-newslatter">
+        <div class="container">
+            <div class="newslatter-inner set-bg" data-setbg="{% static 'img/newslatter-bg.jpg' %}">
+                <div class="ni-text">
+                    <h3>Subscribe Newsletter</h3>
+                    <p>Subscribe to our newsletter and don’t miss anything</p>
+                </div>
+                <form action="#" class="ni-form">
+                    <input type="text" placeholder="Your email">
+                    <button type="submit">Subscribe</button>
+                </form>
+            </div>
+        </div>
+    </section>
+    <!-- Newslatter Section End -->
+
+    <!-- Contact Section Begin -->
+    <section class="contact-section spad">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="section-title">
+                        <h2>Location</h2>
+                        <p>Get directions to our event center</p>
+                    </div>
+                    <div class="cs-text">
+                        <div class="ct-address">
+                            <span>Address:</span>
+                            <p>Rivnens'ka St, 16<br />Chernivtsi, Ukraine</p>
+                        </div>
+                        <ul>
+                            <li>
+                                <span>Phone:</span>
+                                (+380)-50-912-81-60 <br>
+                                (+380)-372-509-172
+                            </li>
+                            <li>
+                                <span>Email:</span>
+                                m.rusnak@chnu.edu.ua
+                            </li>
+                        </ul>
+                        <!--
+                        <div class="ct-links">
+                            <span>Website:</span>
+                            <p>https://conference.colorlib.com</p>
+                        </div>
+                        -->
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="cs-map">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d2655.830741394547!2d25.9150316!3d48.2676317!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47340f527f1c6c67%3A0x36d194a60811cabb!2s8%20Korpus%20Chnu!5e0!3m2!1sen!2sua!4v1731174987878!5m2!1sen!2sua"
+                        width="600" height="450" style="border:0;" 
+                        allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Contact Section End -->
+
+    <!-- Footer Section Begin -->
+    <footer class="footer-section">
+        <div class="container">
+            <div class="partner-logo owl-carousel">
+                <a href="#" class="pl-table">
+                    <div class="pl-tablecell">
+                        <img src="{% static 'img/partner-logo/logo-1.png' %}" alt="">
+                    </div>
+                </a>
+                <a href="#" class="pl-table">
+                    <div class="pl-tablecell">
+                        <img src="{% static 'img/partner-logo/logo-2.png' %}" alt="">
+                    </div>
+                </a>
+                <a href="#" class="pl-table">
+                    <div class="pl-tablecell">
+                        <img src="{% static 'img/partner-logo/logo-3.png' %}" alt="">
+                    </div>
+                </a>
+                <a href="#" class="pl-table">
+                    <div class="pl-tablecell">
+                        <img src="{% static 'img/partner-logo/logo-4.png' %}" alt="">
+                    </div>
+                </a>
+                <a href="#" class="pl-table">
+                    <div class="pl-tablecell">
+                        <img src="{% static 'img/partner-logo/logo-5.png' %}" alt="">
+                    </div>
+                </a>
+                <a href="#" class="pl-table">
+                    <div class="pl-tablecell">
+                        <img src="{% static 'img/partner-logo/logo-6.png' %}" alt="">
+                    </div>
+                </a>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="footer-text">
+                        <div class="ft-logo">
+                            <a href="#" class="footer-logo"><img src="{% static 'img/logo.svg' %}" style="width: 85px;" alt=""></a>
+                        </div>
+                        <ul>
+                            <li><a href="/">Home</a></li>
+                            <li><a href="{% url 'committee' %}">Committee</a></li>
+                            <li><a href="{% url 'schedule' %}">Schedule</a></li>
+                            <!--<li><a href="#">Blog</a></li>-->
+                            <li><a href="{% url 'contact' %}">Contacts</a></li>
+                        </ul>
+                        <div class="copyright-text"><p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+  Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="fa fa-heart" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
+  <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p></div>
+                        <div class="ft-social">
+                            <a href="#https://www.facebook.com/@chnu.edu.ua/"><i class="fa fa-facebook"></i></a>
+                            <a href="#"><i class="fa fa-twitter"></i></a>
+                            <a href="#"><i class="fa fa-linkedin"></i></a>
+                            <a href="#https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwiarbmq6c-JAxXlDRAIHUuYII8QFnoECBUQAQ&url=https%3A%2F%2Fwww.instagram.com%2Fstudparlament_nniftkn%2F&usg=AOvVaw1hGg_mj_X7kIJyzwsOCPMV&opi=89978449"><i class="fa fa-instagram"></i></a>
+                            <a href="#"><i class="fa fa-youtube-play"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Footer Section End -->
+
+    <!-- Js Plugins -->
+    <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/jquery.magnific-popup.min.js' %}"></script>
+    <script src="{% static 'js/jquery.countdown.min.js' %}"></script>
+    <script src="{% static 'js/jquery.slicknav.js' %}"></script>
+    <script src="{% static 'js/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/home.js' %}"></script>
+</body>
+
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+	<title>Slide Navbar</title>
+	<link rel="stylesheet" type="text/css" href="slide navbar style.css">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+<title>PCSCE</title>
+
+
+<link rel="stylesheet" href="{% static 'css/sign.css' %}" type="text/css">
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		const emailField = document.querySelector("input[name='email']");
+		const passwordField = document.querySelector("input[name='password']");
+		const emailError = document.querySelector(".error-message");
+	
+		emailField.addEventListener("blur", function () {
+			if (!emailField.value.includes("@")) {
+				emailError.style.display = "block";
+				emailError.textContent = "Invalid email format!";
+			} else {
+				emailError.style.display = "none";
+			}
+		});
+	});
+	</script>
+</head>
+<body>
+	<div class="main">  
+		<input type="checkbox" id="chk" aria-hidden="true">
+			<div class="signup">
+				<form method="POST" action="{% url 'sign' %}">
+					{% csrf_token %}
+					<label for="chk" aria-hidden="true">Sign up</label>
+					<input type="text" name="username" placeholder="Username" required>
+    				<input type="email" name="email" placeholder="Email" required>
+    				<input type="password" name="password" placeholder="Password" required>
+					<small id="password-requirements">
+						Password must be at least 8 characters, include a number and a special character.
+					</small>
+					<small class="error-message" id="password-error"></small>
+					<button type="submit" name="register">Sign up</button>
+				</form>
+			</div>
+
+			<div class="login">
+				<form method="POST" action="{% url 'sign' %}">
+					{% csrf_token %}
+					<label for="chk" aria-hidden="true">Login</label>
+					<input type="email" name="email" placeholder="Email" required>
+    				<input type="password" name="password" placeholder="Password" required>
+					<small class="error-message" id="password-error"></small>
+					<a href="{% url 'password_reset' %}"><small>Forgor password?</small></a>
+					<button type="submit" name="login">Login</button>
+				</form>
+			</div>
+	</div>
+</body>
+</html>

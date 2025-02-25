@@ -1,0 +1,28 @@
+{% extends 'home.html' %}
+{% block content %}
+<h2>Your Files</h2>
+
+<a href="{% url 'upload_file' %}">Upload New File</a>
+
+<table>
+    <tr>
+        <th>File Name</th>
+        <th>Status</th>
+        <th>Actions</th>
+    </tr>
+    {% for file in files %}
+    <tr>
+        <td>{{ file.file.name }}</td>
+        <td>{{ file.get_status_display }}</td>
+        <td>
+            <a href="{% url 'edit_file' file.id %}">Edit</a> |
+            <a href="{% url 'delete_file' file.id %}" onclick="return confirm('Are you sure?')">Delete</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="3">No files uploaded yet.</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

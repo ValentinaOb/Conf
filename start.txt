@@ -1,0 +1,54 @@
+Before Start
+- Create a virtual environment using virtualenvwrapper: mkvirtualenv -p which python3 <ypur-virtual-env-name>
+- Install test requirements: pip install -r test-requirements.txt
+
+Activate & Run Server
+venv\Scripts\activate
+cd python
+python manage.py runserver
+
+
+# home.html for show uploaded files <!--    <a href="{% url 'upload_file' %}">Upload New File</a> -->
+
+
+///
+cd python
+python -m venv ven
+pip install django
+django-admin startproject login_signup 
+cd .\login_signup\
+
+python manage.py startapp base 
+
+//creatre project
+pip install django
+pip freeze > requirements.txt
+django-admin startproject python
+django-admin startapp base
+
+cd python
+python manage.py makemigrations
+python manage.py migrate  
+
+pip install mysqlclient
+
+pip install phonenumbers
+pip install django-phonenumber-field
+
+python manage.py collectstatic
+
+
+
+Colors:
+- New Background #1E1F1E
+- Blue button #164CA1
+
+- Text White #F5F5F5
+- Background #121212
+
+- Grey Text #D7D8DF
+
+- Yellow #FFD734
+- Peach #F05457
+- Dark Blue #13103B
+- Purple Blue #3700B3
