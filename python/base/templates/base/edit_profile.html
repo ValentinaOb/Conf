@@ -156,5 +156,13 @@
             deactivateForm.submit(); // Надсилаємо форму після підтвердження
         });
     });
+
+    const uploadField = document.getElementById("avatar");
+
+    uploadField.onchange = function() {
+        if(this.files[0].size > 1 * 1024 * 1024) {
+            alert("avatar is too big! Need - 1 MB");
+        }
+    };
 </script>
 </html>

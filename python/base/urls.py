@@ -36,15 +36,21 @@ urlpatterns = [
         
     path('upload/', views.upload, name='upload'),
     
-    path('upload/update/', views.update, name='update'),
-    path('upload/update/<int:id>', views.update, name='update'),
-    path('upload/update/updaterecord/<int:id>', views.update, name='update'),
+    path('update/', views.update, name='update'),
+    path('update/<int:id>', views.update, name='update'),
+    path('update/updaterecord/<int:id>', views.update, name='update'),
 
-    
-    path('upload/delete/', views.delete, name='delete'),
-    path('upload/delete/<int:id>', views.delete, name='delete'), 
+    path('delete/', views.delete, name='delete'),
+    path('delete/<int:id>', views.delete, name='delete'), 
     
 ]
+
+'''path('upload/update/', views.update, name='update'),
+    path('upload/update/<int:id>', views.update, name='update'),
+    path('upload/update/updaterecord/<int:id>', views.update, name='update'),
+    
+    path('upload/delete/', views.delete, name='delete'),
+    path('upload/delete/<int:id>', views.delete, name='delete'), '''
 
 from django.conf import settings
 from django.conf.urls.static import static

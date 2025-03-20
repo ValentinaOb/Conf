@@ -72,7 +72,32 @@
         </div>
     </header>
     <!-- Header End -->
+   <!-- Message Section Begin -->
+   <div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="toast align-items-center text-white bg-{% if message.tags == 'error' %}danger{% else %}success{% endif %} border-0 fade show"
+                role="alert" aria-live="assertive" aria-atomic="true" id="toast-{{ forloop.counter }}">
+                <div class="d-flex">
+                    <div class="toast-body text-center w-100">
+                        {{ message }}
+                    </div>
+                </div>
+            </div>
+            <script>
+                setTimeout(() => {
+                    let toast = document.getElementById("toast-{{ forloop.counter }}");
+                    if (toast) {
+                        toast.classList.remove("show");
+                        toast.classList.add("hide");
+                    }
+                }, 3000);
+            </script>
+        {% endfor %}
+    {% endif %}
+</div>
 
+<!-- Message End -->
     
     <!-- For Log in Start -->
     <!--

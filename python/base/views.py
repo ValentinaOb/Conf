@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -14,8 +13,6 @@ from django.contrib.auth import update_session_auth_hash
 import os
 from django.contrib import auth
 from django.contrib.auth.forms import PasswordChangeForm
-import phonenumbers
-from phonenumber_field.phonenumber import PhoneNumber
 from django.contrib.admin.views.decorators import staff_member_required
 
 @staff_member_required
@@ -29,7 +26,11 @@ def home(request):
     
     print(request.user)
     user_data=User_Data.objects.get(user=request.user)
-    return render(request, "base/home.html", {'user_data': user_data})
+    #return render(request, "base/home.html", {'user_data': user_data})
+
+
+    works=Work.objects.all().filter(user=request.user)
+    return render(request, "base/home.html", {'form': UploadWorkForm, 'works': works, 'user_data': user_data})
 
 def user_profile(request):
     print(request.user)
@@ -42,10 +43,11 @@ def user_profile(request):
 def edit_profile(request):
     user_data=User_Data.objects.get(user=request.user)
     print(request.FILES.get('avatar'))    #default delete
-
-    if request.method == "POST":
-        User_Data.objects.get(user=request.user).delete()
-        '''user_data.firstname=request.POST.get('firstname',''),
+    
+    try:
+        if request.method == "POST":
+            User_Data.objects.get(user=request.user).delete()
+            '''user_data.firstname=request.POST.get('firstname',''),
         user_data.lastname=request.POST.get('lastname',''),
         user_data.phone = PhoneNumber.from_string(request.POST.get("phone", "").strip(), region='US')
         user_data.avatar=request.FILES.get('avatar'),
@@ -54,33 +56,36 @@ def edit_profile(request):
         user_data.user=request.user
         print(user_data.firstname,user_data.lastname, user_data.phone)
         user_data.save()'''
-        User_Data.objects.create(
-            firstname=request.POST['firstname'],
-            lastname=request.POST['lastname'],
-            phone=request.POST['phone'],
-            job=request.POST['job'],
-            avatar=request.FILES.get('avatar'),
-            country=request.POST['country'],
-            language=request.POST['language'],
-            user=request.user
-        )
-        print(request.FILES.get('avatar'))
+            User_Data.objects.create(
+                firstname=request.POST['firstname'],
+                lastname=request.POST['lastname'],
+                phone=request.POST['phone'],
+                job=request.POST['job'],
+                avatar=request.FILES.get('avatar'),
+                country=request.POST['country'],
+                language=request.POST['language'],
+                user=request.user
+            )
+            print(request.FILES.get('avatar'))
 
-        if request.POST['email'] !=request.user.email :
-            obj = User.objects.get(id=request.user.id)
-            obj.email=request.POST['email']
-            obj.save()
-        if request.POST['username']:
-            obj = User.objects.get(id=request.user.id)
-            obj.username=request.POST['username']
-            obj.save()
+            if request.POST['email'] !=request.user.email :
+                obj = User.objects.get(id=request.user.id)
+                obj.email=request.POST['email']
+                obj.save()
+            if request.POST['username']:
+                obj = User.objects.get(id=request.user.id)
+                obj.username=request.POST['username']
+                obj.save()
 
-        return redirect('home')
+            messages.success(request, request.POST['firstname']+', Update Changes')
+            return redirect('home')
 
-    '''form = UploadUserDataForm(request.user, request.POST)
-        if form.is_valid():
-            print("Valid")
-            form.save()'''
+        '''form = UploadUserDataForm(request.user, request.POST)
+            if form.is_valid():
+                print("Valid")
+                form.save()'''
+    except Exception as e:
+        messages.error(request, "Error: ",repr(e))
 
     return render(request,"base/edit_profile.html",{'user_data':user_data, 'form': UploadUserDataForm})
 
@@ -119,60 +124,79 @@ def deactivate_account(request):
     return redirect('base')
 
 def upload(request): 
-    #print("ID: ",request.user.id)
-    if request.user.is_superuser:
-        user_data=User_Data.objects
-        return render(request, "base/upload.html", {'user_data': user_data})
+    try:
+        #print("ID: ",request.user.id)
+        if request.user.is_superuser:
+            user_data=User_Data.objects
+            return render(request, "base/upload.html", {'user_data': user_data})
     
-    if request.method == "POST":
-        Work.objects.create(
-                category=request.POST['category'],
-                title=request.POST['title'],
-                authors=request.POST['authors'],
-                file=request.FILES['file'],
-                file_size=request.FILES['file'].size,
-                status='sent',
-                user=request.user
-        )
-        '''form = UploadWorkForm(request.POST, request.FILES) # , request.user, request.FILES.size       as 'file_size')
+        if request.method == "POST":
+            Work.objects.create(
+                    category=request.POST['category'],
+                    title=request.POST['title'],
+                    authors=request.POST['authors'],
+                    file=request.FILES['file'],
+                    file_size=request.FILES['file'].size,
+                    status='sent',
+                    user=request.user
+            )
+            messages.success(request, 'Upload '+request.POST['title'])
+            '''form = UploadWorkForm(request.POST, request.FILES) # , request.user, request.FILES.size       as 'file_size')
         print("W:", work)
         if form.is_valid():
             print("Valid")
             form.save()'''
 
-    works=Work.objects.all().filter(user=request.user)
-    user_data=User_Data.objects.get(user=request.user)
-    
-    return render(request, "base/upload.html", {'form': UploadWorkForm, 'works': works, 'user_data': user_data})          #base/upload.html
+        works=Work.objects.all().filter(user=request.user)
+        user_data=User_Data.objects.get(user=request.user)
+        
+    except Exception as e:
+        messages.error(request, "Error: ",repr(e))
+        
+    #return render(request, "base/upload.html", {'form': UploadWorkForm, 'works': works, 'user_data': user_data})          #base/upload.html
+    return render(request, 'home', {'form': UploadWorkForm, 'works': works, 'user_data': user_data})          #base/upload.html
 
 def update(request, id):
-    edit_element = Work.objects.get(id=id)
-    works=Work.objects.all().filter(user=request.user)
-    obj = Work.objects.get(id=id)
-    print("hee")
+    try:
+        edit_element = Work.objects.get(id=id)
+        works=Work.objects.all().filter(user=request.user)
+        obj = Work.objects.get(id=id)
+        print("hee")
 
-    if "updaterecord" in request.POST:
-        file = request.FILES.get('file', edit_element.file)
-        print(file)
-        category = request.POST.get('category', edit_element.category)
-        title = request.POST.get('title', edit_element.title)
-        authors = request.POST.get('authors', edit_element.authors)
+        if "updaterecord" in request.POST:
+            file = request.FILES.get('file', edit_element.file)
+            print(file)
+            category = request.POST.get('category', edit_element.category)
+            title = request.POST.get('title', edit_element.title)
+            authors = request.POST.get('authors', edit_element.authors)
         
-        obj.category = category
-        obj.file = file
-        obj.title = title
-        obj.authors = authors
-        obj.save()
-        return redirect('upload')
+            obj.category = category
+            obj.file = file
+            obj.title = title
+            obj.authors = authors
+            obj.save()
+            messages.success(request, 'Update '+ obj.title)
 
-    return render(request, 'base/upload.html', {'edit_element': edit_element, 'works': works})
+            #return redirect('upload')
+            return redirect('home')
+        
+    except Exception as e:
+        messages.error(request, "Error: ",repr(e))
+
+    #return render(request, 'base/upload.html', {'edit_element': edit_element, 'works': works})
+    return render(request, 'base/home.html', {'edit_element': edit_element, 'works': works})
 
 def delete(request, id):
-    obj = Work.objects.get(id=id)
-    obj.delete()
-    os.remove(str(obj.file.path))
-    print("Yes!")
-    return redirect('upload') 
+    try:
+        obj = Work.objects.get(id=id)
+        messages.success(request, 'Delete '+obj.title)
+        obj.delete()
+        os.remove(str(obj.file.path))
+        print("Yes!")
+    except Exception as e:
+        messages.error(request, "Error: ",repr(e))
+    #return redirect('upload') 
+    return redirect('home') 
         
 
 
@@ -235,7 +259,7 @@ def sign(request):
             else:
                 user = User.objects.create_user(username=username, email=email, password=password)
                 user.save()
-                messages.success(request, "Registration successful! Please log in.")
+                messages.success(request, "Registration successful!")
                 user = authenticate(request, username=email, password=password)
                 user_data = User_Data.objects.create(user=user)
                 user_data.save()
