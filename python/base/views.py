@@ -214,12 +214,20 @@ def committee(request):
 
 
 def sign(request):
+    print('Y')
     if request.method == "POST":
+        print('Yes')
         username = request.POST.get("username", "").strip()
         email = request.POST.get("email", "").strip()
         password = request.POST.get("password", "").strip()
 
-        if "register" in request.POST:  # Registration
+        action = request.POST.get("submit_type") 
+        
+        #if <button type="submit" id="form-submit-btn" name ="register">Sign Up</button>    do
+        #if "register" in request.POST:  # Registration
+        print('A: ',action)
+        if action =="register":  # Registration
+            print('R')
             if User.objects.filter(email=email).exists():
                 messages.error(request, "An account with this email already exists.")
             elif User.objects.filter(username=username).exists():
@@ -235,7 +243,8 @@ def sign(request):
                 login(request, user)
                 return redirect('home')
 
-        elif "login" in request.POST:  # Login
+        elif action=="login":  # Login
+            print('L')
             user = authenticate(request, username=email, password=password)  # Login using email
             if user is not None:
                 login(request, user)

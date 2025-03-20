@@ -167,7 +167,11 @@
             <td>{{work.status}}</td>
             
             <td><a href='update/{{work.id}}'>Update</a></td>
-            <td><a href='delete/{{work.id}}'>Delete</a></td>
+            <!--<td><button href='delete/{{work.id}}' type="button" class="btn btn-primary" data-toggle="modal" data-target="#delete_confirmation"></button></td>-->
+            <td><a href="#" class="delete_confirmation btn btn-danger"
+                data-bs-toggle="modal" data-bs-target="#deleteModal"
+                data-work-id="{{ work.id }}" data-work-title="{{ work.title }}">Delete</a>
+            </td>
         </tr>
         {% endfor %}
         {%else%}
@@ -185,10 +189,30 @@
         
     </table>
 
+    <!-- Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Delete Confirmation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete <strong id="workTitle"></strong>?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <a href="#" id="confirmDelete" class="btn btn-danger">Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
-
-
+<!-- Bootstrap 
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+-->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <footer class="footer-section">
         <div class="container">
@@ -253,5 +277,22 @@
         </div>
     </footer>
 </body>
-<script src="{% static 'js/home.js' %}"></script>
+
+<script src="{% static 'js/home.js' %}">
+    document.addEventListener("DOMContentLoaded", function () {
+        var deleteButtons = document.querySelectorAll(".delete_confirmation");
+        var workTitleSpan = document.getElementById("workTitle");
+        var confirmDelete = document.getElementById("confirmDelete");
+
+        deleteButtons.forEach(function (button) {
+            button.addEventListener("click", function (event) {
+                event.preventDefault(); // Stop
+                var workId = this.getAttribute("data-work-id");
+                var workTitle = this.getAttribute("data-work-title");
+                workTitleSpan.textContent = workTitle;
+                confirmDelete.href = 'delete/' + workId;  
+            });
+        });
+    });
+</script>
 </html>
