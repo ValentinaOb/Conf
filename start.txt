@@ -7,6 +7,7 @@ venv\Scripts\activate
 cd python
 python manage.py runserver
 
+manage.py test
 
 # home.html for show uploaded files <!--    <a href="{% url 'upload_file' %}">Upload New File</a> -->
 
