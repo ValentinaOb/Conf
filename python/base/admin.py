@@ -3,6 +3,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.views.generic.detail import DetailView
 from django.urls import path, reverse
 from django.utils.html import format_html
+from django.contrib import messages
 
 from .models import User, Work, User_Data
 
@@ -26,6 +27,7 @@ def accept_work(ModelAdmin, request, queryset):
             request,
             "Selected work have been marked as Accept and user have been notified."
         )
+    messages.success(request, works.title +' - Accept')
 
 @admin.action(description="Refuse_Work")
 def refuse_work(ModelAdmin, request, queryset):
@@ -46,6 +48,7 @@ def refuse_work(ModelAdmin, request, queryset):
             request,
             "Selected work have been marked as Refuse and user have been notified."
         )
+        messages.success(request, works.title +' - Refuse')
 
 @admin.action(description="Review_Work")
 def review_work(ModelAdmin, request, queryset):

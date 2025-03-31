@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 class Work (models.Model):
     #id = models.AutoField(primary_key=True)
     category = models.TextField(null=False)
-    title = models.TextField(null=False)
+    title = models.CharField(null=False, max_length=80, unique=True)
     authors = models.TextField(null=False)
     file = models.FileField(upload_to='files/', null=True, blank=False)
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -34,9 +34,24 @@ class User_Data (models.Model):
     language = models.TextField(null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     def save(self, *args, **kwargs):
-        if not self.avatar:  # ✅ If img is empty, set the default
+        if not self.avatar:  # If img is empty, set the default
             self.avatar = "avatars/default.png"
         super().save(*args, **kwargs)
+
+
+class Review_Work (models.Model):
+    #user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    users= models.TextField(null=True)
+    work = models.ForeignKey(Work, on_delete=models.CASCADE)
+    send_at = models.DateTimeField(auto_now_add=True)
+
+class User_Role (models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    class Roles(models.TextChoices):
+        Admin='admin'
+        Reviewer='reviewer'
+        User='user'
+    user_role= models.CharField(max_length=8,null=False, choices=Roles.choices, default='User')
 
 
 from django.forms import ModelForm

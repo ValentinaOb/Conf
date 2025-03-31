@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="zxx">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Manup Template">
+    <meta name="keywords" content="Manup, unica, creative, html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>PCSCE</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css?family=Work+Sans:400,500,600,700,800,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap" rel="stylesheet">
+
+    <link rel="icon" type="image/x-icon" href="{% static 'img/logo.svg' %}"  style="border-radius: 50%;">
+
+    <!-- Css Styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!---->
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/elegant-icons.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/magnific-popup.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/slicknav.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" type="text/css">
+
+    <link rel="stylesheet" href="{% static 'css/home.css' %}" type="text/css">
+</head>
+
+<body style="background-color: #121212;">
+    <!-- Js Plugins -->
+    <script src="{% static 'js/home.js' %}"></script>
+    <!-- Page Preloder 
+
+    <div id="preloder">
+        <div class="loader"></div>
+    </div>-->
+
+    {% block content %}
+    <!-- Header Section Begin -->
+    <header class="header-section">
+   
+        <div class="container">
+            <div class="logo">
+                <a href="{% url 'admin_home' %}"> 
+                    <img src="{% static 'img/logo.svg' %}" style="width: 45px;" alt="">
+                </a>
+            </div>
+            <div class="nav-menu">
+                <!--<nav class="mainmenu mobile-menu">
+                    <ul>
+                        <li class="active"><a href= '/'>Home</a></li>
+                        
+                        <li><a href="{% url 'about' %}">About</a></li>
+                        <li><a href="{% url 'committee' %}">Committee</a>
+                        </li>
+                        <li><a href="{% url 'schedule' %}">Schedule</a></li>
+                        <li><a href="{% url 'contact' %}">Contacts</a></li>
+                    </ul>
+                </nav>-->
+                <div class="action" id="action">
+                    <div class="profile" id="profile">
+                        <img src="{{ user_data.avatar.url }}" alt="User Avatar" />
+                    </div>
+                    <div class="menu" id="menu">
+                        <h2>{{ user.username }}</h2>
+                        {% if user_data.firstname %}
+                        <h3>{{ user_data.firstname }} {{ user_data.lastname }} <br />
+                            <span>{{ user_data.job }}</span></h3>
+                        {%endif%}
+                        <ul>
+                            <li><i class="fa fa-edit"></i> <a href="{% url 'edit_profile' %}">Edit Profile</a></li>
+                            <li><i class="fa fa-envelope"></i> <a href="#">Notification</a></li>
+                            <!--<li><i class="fa fa-cog"></i> <a href="#">Settings</a></li>
+                            <li><i class="fa fa-question-circle"></i> <a href="#">Help</a></li>-->
+                            <li><i class="fa fa-sign-out-alt"></i> <a href="{% url 'logout' %}">Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+            </div>
+            <div id="mobile-menu-wrap"></div>
+        </div>
+
+    </header>
+
+
+    <!-- Header End -->
+
+    <!-- Message Section Begin -->
+    <div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="toast align-items-center text-white bg-{% if message.tags == 'error' %}danger{% else %}success{% endif %} border-0 fade show"
+                    role="alert" aria-live="assertive" aria-atomic="true" id="toast-{{ forloop.counter }}">
+                    <div class="d-flex">
+                        <div class="toast-body text-center w-100">
+                            {{ message }}
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    setTimeout(() => {
+                        let toast = document.getElementById("toast-{{ forloop.counter }}");
+                        if (toast) {
+                            toast.classList.remove("show");
+                            toast.classList.add("hide");
+                        }
+                    }, 3000);
+                </script>
+            {% endfor %}
+        {% endif %}
+    </div>
+    
+    <!-- Message End -->
+    <br>
+    <table id="outputTable" style="color: #F5F5F5;text-align: center;">
+        <tr>
+            <th>Category</th>
+            <th>Title</th>
+            <th>File</th>
+            <th>File Size</th>
+            <th>Uploaded At</th>
+            <th>Status</th>
+            <th colspan="3">Action</th>
+        </tr>
+        {%if reviewer_tasks%}
+        {% for reviewer_task in reviewer_tasks %}  
+        <tr>
+            <td>{{reviewer_task.category}}</td>
+            <td>{{reviewer_task.title}}</td>
+            <td>{{reviewer_task.file}}</td>
+            <td>{{reviewer_task.file_size|filesizeformat}}</td>
+
+            <td>{{reviewer_task.send_at}}</td>
+
+            <td>{{reviewer_task.status}}</td>
+
+
+            <!--<td><a href='/update/{{work.id}}'>Update</a></td>-->
+            <td><button onclick="window.open('/reviewer/review_file/{{reviewer_task.work_id}}', '_blank')">Review</button></td>
+            
+            <td><a href='/reviewer/review_status/{{reviewer_task.work_id}}'>Status</a></td>
+            
+        </tr>
+        {% endfor %}
+        
+        {%else%}
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>            
+            <td></td>
+            <td></td>
+        </tr>
+        {%endif%}
+        
+    </table>
+    
+    {% if review_element %}
+    <div class="form_container">
+        <div class="text">Organisation</div>
+        <form action="/reviewer/review_status/{{review_element.id}}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+          <div class="input-data">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" value="{{review_element.title}}" readonly>
+          </div>
+      
+          <div class="input-data">
+            <label for="work_status">Work Status</label>
+            <select id="work_status" name="work_status" required>
+                <option value="accept">Accept</option>
+                <option value="refuse">Refuse</option>
+            </select>
+          </div>
+
+          <div class="input-data">
+          <label for="story">Feedback</label>
+
+        <textarea id="feedback" name="feedback" rows="3" cols="50" onclick="document.getElementById('feedback').value = '' ">For Refusee</textarea>
+        </div>
+        <br>
+
+      
+          <div class="submit-btn">
+            <button type="submit" name="upload">Submit</button>
+          </div>
+        </form>
+      </div>
+    {% endif %}
+
+
+    {% for rev_work in rev_works %}    
+            <td>{{rev_work.username}}</td>
+            {%endfor%}
+
+      <br>
+<!-- Table to display uploaded files -->
+ <!-- Modal -->
+ <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete Confirmation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete <strong id="workTitle"></strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="confirmDelete" class="btn btn-danger">Confirm Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="footer-section">
+    <div class="container">
+        <div class="partner-logo owl-carousel">
+            <a href="#" class="pl-table">
+                <div class="pl-tablecell">
+                    <img src="{% static 'img/partner-logo/logo-1.png' %}" alt="">
+                </div>
+            </a>
+            <a href="#" class="pl-table">
+                <div class="pl-tablecell">
+                    <img src="{% static 'img/partner-logo/logo-2.png' %}" alt="">
+                </div>
+            </a>
+            <a href="#" class="pl-table">
+                <div class="pl-tablecell">
+                    <img src="{% static 'img/partner-logo/logo-3.png' %}" alt="">
+                </div>
+            </a>
+            <a href="#" class="pl-table">
+                <div class="pl-tablecell">
+                    <img src="{% static 'img/partner-logo/logo-4.png' %}" alt="">
+                </div>
+            </a>
+            <a href="#" class="pl-table">
+                <div class="pl-tablecell">
+                    <img src="{% static 'img/partner-logo/logo-5.png' %}" alt="">
+                </div>
+            </a>
+            <a href="#" class="pl-table">
+                <div class="pl-tablecell">
+                    <img src="{% static 'img/partner-logo/logo-6.png' %}" alt="">
+                </div>
+            </a>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="footer-text">
+                    <div class="ft-logo">
+                        <a href="{% url 'admin_home' %}" class="footer-logo"><img src="{% static 'img/logo.svg' %}" style="width: 85px;" alt=""></a>
+                    </div>
+                    <!--<ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="{% url 'committee' %}">Committee</a></li>
+                        <li><a href="{% url 'schedule' %}">Schedule</a></li>
+                        
+                        <li><a href="{% url 'contact' %}">Contacts</a></li>
+                    </ul>-->
+                    <div class="copyright-text"><p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="fa fa-heart" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
+<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p></div>
+                    <div class="ft-social">
+                        <a href="#https://www.facebook.com/@chnu.edu.ua/"><i class="fa fa-facebook"></i></a>
+                        <a href="#"><i class="fa fa-twitter"></i></a>
+                        <a href="#"><i class="fa fa-linkedin"></i></a>
+                        <a href="#https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwiarbmq6c-JAxXlDRAIHUuYII8QFnoECBUQAQ&url=https%3A%2F%2Fwww.instagram.com%2Fstudparlament_nniftkn%2F&usg=AOvVaw1hGg_mj_X7kIJyzwsOCPMV&opi=89978449"><i class="fa fa-instagram"></i></a>
+                        <a href="#"><i class="fa fa-youtube-play"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+
+{% endblock content %}
+</body>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="{% static 'js/home.js' %}"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+      document.querySelectorAll(".delete_confirmation").forEach(button => {
+          button.addEventListener("click", function () {
+              let workId = this.getAttribute("data-work-id");
+              document.getElementById("confirmDelete").setAttribute("data-work-id", workId);
+          });
+      });
+
+      document.getElementById("confirmDelete").addEventListener("click", function (event) {
+          event.preventDefault(); // Забороняємо стандартний перехід по "#"
+
+          let workId = this.getAttribute("data-work-id");
+          if (workId) {
+              window.location.href = `/delete/${workId}`; // URL
+          } else {
+              console.error("workId not found!");
+          }
+      });
+  });
+</script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</html>

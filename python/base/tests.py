@@ -10,6 +10,7 @@ class UserModelTest(TestCase):
 class UserDataModelTest(TestCase):
     @classmethod
     def setUpTestData(cls):
+        #mock
         User_Data.objects.create(firstname='firstname',lastname='lastname',phone='00000000000',job='job',
                 avatar='',country='country',language='language',user=User)
     
@@ -18,7 +19,7 @@ class UserDataModelTest(TestCase):
                 avatar='',country='country',language='language',user=User)
     
 class WebAppTests(TestCase):
-    
+    #визначити користувача, чи має він право переглядати дані 
     def test_main_page(self):
         response = self.client.get('')
         self.assertEqual(response.status_code, 200)

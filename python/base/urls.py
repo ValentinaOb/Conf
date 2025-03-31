@@ -7,8 +7,17 @@ from django.conf import settings
 
 
 urlpatterns = [
+    path('admin/home', views.admin_home, name='admin_home'),
+    path('admin/to_review', views.to_review, name='to_review'),
+    path('admin/to_review/<int:id>', views.to_review, name='to_review'),
     path('admin/', admin.site.urls),
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
+
+    path('reviewer/home', views.reviewer_home, name='reviewer_home'),
+    path('reviewer/review_status', views.review_status, name='review_status'),
+    path('reviewer/review_status/<int:id>', views.review_status, name='review_status'),
+    path('reviewer/review_file/<int:id>', views.review_file, name='review_file'),    
+    path('reviewer/status_change/<int:id>', views.status_change, name='status_change'),
     
     path('', views.base, name='base'),
     path('about/', views.about, name='about'),
@@ -17,6 +26,7 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
     
     path('sign/', views.sign, name='sign'),
+    path('login/', views.log, name='login'),
 
     path("password_reset/", auth_views.PasswordResetView.as_view(template_name="base/password_reset_form.html"),name="password_reset"),
     path("password_reset/done/", auth_views.PasswordResetDoneView.as_view(template_name="base/password_reset_done.html"), name="password_reset_done"),

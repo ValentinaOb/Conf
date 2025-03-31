@@ -1,33 +1,319 @@
+from django.db import IntegrityError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import FileResponse, Http404, HttpResponse, HttpResponseRedirect, StreamingHttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Work, UploadWorkForm, User_Data, UploadUserDataForm
+from .models import Work, UploadWorkForm, User_Data, UploadUserDataForm, Review_Work, User_Role, Review_Work
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import update_session_auth_hash
 import os
 from django.contrib import auth
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.admin.views.decorators import staff_member_required
+from collections import namedtuple
+
+from admin import accept_work, refuse_work
+
+works_rev = namedtuple('Three', ['category', 'title', 'authors','file','file_size','uploaded_at','status', 'users','send_at','work_id'])
 
 @staff_member_required
-def admin_view(request):
-    return render(request, 'adm-upload.html')
+def admin_home(request):
+
+    #usernames of reviewers
+    reviewers_id = User_Role.objects.filter(user_role='reviewer')  
+    user_ids = reviewers_id.values_list('user_id', flat=True)  
+    reviewers = User.objects.filter(id__in=user_ids)  
+
+    '''rev_works_id = Review_Work.objects.all()
+    rev_works_ids = rev_works_id.values_list('user_id', flat=True)  
+    
+    rev_works = User.objects.filter(id__in=rev_works_ids) '''
+    
+    #
+    #rev_works_id = Review_Work.objects.all()
+    '''rev_works_ids = rev_works_id.values_list('user_id', flat=True)  
+
+
+    #users_dict = {user.id: user for user in User.objects.filter(id__in=[x for x in rev_works_id if x is not None])}  
+    #rev_works = [users_dict.get(uid, None) for uid in rev_works_id]
+    rev_works = User.objects.filter(id__in=rev_works_ids).exclude(None)'''
+
+    '''rev_works_id = Review_Work.objects.values('send_at', 'users').annotate(
+    category=Value(None, output_field=TextField()), 
+    title=Value(None, output_field=CharField()), 
+    authors=Value(None, output_field=TextField()), 
+    file=Value(None, output_field=FileField()), 
+    file_size=Value(None, output_field=IntegerField()), 
+    uploaded_at=Value(None, output_field=DateTimeField()),
+    status=Value(None, output_field=CharField()),
+    source=Value('Review_Work', output_field=CharField()))
+
+    works = Work.objects.values('category', 'title', 'authors','file','file_size','uploaded_at','status').annotate(
+    send_at=Value(None, output_field=DateTimeField()), 
+    users=Value(None, output_field=TextField()),
+    source=Value('Work', output_field=CharField())  # Додаємо джерело
+    )
+    works_rev_union = works.union(rev_works_id)
+    print('R: ',works_rev_union)'''
+
+    #works_rev_join = Work.objects.select_related('review_work').values('category', 'title', 'authors','file','file_size','uploaded_at','status' 'review_work__users','review_work__send_at')
+    #works_rev_join = Review_Work.objects.select_related('work').all() 
+
+
+    queryset = Review_Work.objects.select_related('work').all()
+    
+    works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at, obj.work_id) for obj in queryset]
+
+    #
+    '''
+    rev_works_ids = list(rev_works_id.values_list('users', flat=True))  
+    processed_ids = []
+
+    print('A: ',rev_works_ids)
+    for i in rev_works_id:        
+        if i.users is None:
+            processed_ids.append(None)  # Залишаємо None
+        elif isinstance(i.users, str) and i.users.startswith("[") and i.users.endswith("]"):
+            i.users = i.users[1:-1]  # Прибираємо квадратні дужки
+            number_list = i.users.split(",")  # Розбиваємо по комі
+            for num in number_list:
+                num = num.strip()  # Видаляємо пробіли
+                if num.isdigit():  # Перевіряємо, чи це число
+                    processed_ids.append(int(num))
+                else:
+                    processed_ids.append(None)  # Якщо це список, додаємо всі елементи списку
+        else:
+            processed_ids.append(i.users)  # Якщо це одиночне число, додаємо його як є
+    print('F: ',processed_ids)
+
+    data_dict = {obj.id: obj.username for obj in User.objects.filter(id__in=[x for x in processed_ids if x is not None])}
+    #rev_works = [data_dict.get(i, None) for i in processed_ids]
+    rev_works = []
+
+    for item in rev_works_ids:
+        if item is None:
+            rev_works.append(None)
+        elif item.startswith("[") and item.endswith("]"):
+            numbers = item[1:-1].split(", ")
+            rev_works.append([data_dict.get(int(num), None) for num in numbers])
+        else:
+            rev_works.append(data_dict.get(int(item), None))
+            
+    #rev_works_list = [data_dict.get(aid, None) for aid in rev_works_ids]
+    #rev_works = zip(rev_works_id, rev_works_list) 
+    
+    print(data_dict)
+    print(rev_works)
+    print('I: ',type(rev_works))'''
+    
+    '''for i in rev_works_ids:
+        print('I: ',i)
+        if i ==None:
+            i="-"'''
+    #
+
+    '''for w in works:
+        print('W: ',w.title)'''
+
+    return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join})
+
+def to_review(request, id):
+    edit_element = Work.objects.get(id=id)
+    works=Work.objects.all()
+    
+    if request.method == "POST":
+        works=Work.objects.get(title=request.POST['title'])
+        #reviewers=User.objects.get(username=request.POST.getlist('reviewer'))
+
+        '''Review_Work.objects.create(
+            work=works,
+            user=reviewer
+        )'''
+        review_work=Review_Work.objects.get(work=works)
+        #review_work.user=reviewer
+        rev_names=request.POST.getlist('reviewer')
+        rev_ids=[]
+        rev_objs=[]
+        for i in rev_names:
+            rev_objs.append(User.objects.get(username=i))
+        for i in rev_objs:
+            rev_ids.append(i.id)
+        review_work.users=(rev_ids)
+        review_work.save()
+
+        messages.success(request, works.title +' - '+ str(rev_names))
+        print(works, review_work.users)
+        return redirect('admin_home')
+    
+    '''works=Work.objects.all()
+    reviewers_id = User_Role.objects.filter(user_role='reviewer')  
+    user_ids = reviewers_id.values_list('user_id', flat=True)  
+    reviewers = User.objects.filter(id__in=user_ids)  
+    rev_works_id = Review_Work.objects
+    rev_works_ids = rev_works_id.values_list('user_id', flat=True)  
+    rev_works = User.objects.filter(id__in=rev_works_ids) '''
+    print('E: ',edit_element.title)
+
+    #return redirect('admin_home')
+    reviewers_id = User_Role.objects.filter(user_role='reviewer')  
+    user_ids = reviewers_id.values_list('user_id', flat=True)  
+    reviewers = User.objects.filter(id__in=user_ids)  
+
+    '''rev_works_id = Review_Work.objects.all()
+    rev_works_ids = rev_works_id.values_list('users', flat=True)  
+    rev_works = User.objects.filter(id__in=rev_works_ids) 
+    print(rev_works_ids)
+    print('D: ',rev_works)'''
+    queryset = Review_Work.objects.select_related('work').all()
+    
+    works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at) for obj in queryset]
+
+    
+    return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'edit_element': edit_element})
+
+def status_change(request, id):
+    edit_element = Work.objects.get(id=id)
+    
+    if request.method == "POST":
+        works=Work.objects.get(title=request.POST['title'])
+        if request.POST['status'] == 'accept':
+            accept_work()
+        else:
+            refuse_work()
+
+        return redirect('admin_home')
+    
+    reviewers_id = User_Role.objects.filter(user_role='reviewer')  
+    user_ids = reviewers_id.values_list('user_id', flat=True)  
+    reviewers = User.objects.filter(id__in=user_ids)  
+
+    queryset = Review_Work.objects.select_related('work').all()
+    
+    works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at) for obj in queryset]
+
+    return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'edit_element': edit_element})
+
+
+
+def reviewer_home(request):
+    queryset = Review_Work.objects.select_related('work').all()
+    work_ids_list=[]
+    
+    works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at, obj.work_id) for obj in queryset]
+    for i in works_rev_join:
+        if i.users is not None:
+            num_list=i.users[1:-1].split(", ") 
+            for j in num_list:
+                if int(j)==request.user.id:
+                    work_ids_list.append(i.title)
+
+    #reviewer_tasks=Work.objects.filter(title__in = work_ids_list)
+    reviewer_list=Work.objects.only('id').filter(title__in = work_ids_list)
+    queryset=Review_Work.objects.select_related('work').filter(work_id__in = reviewer_list)
+    reviewer_tasks = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at, obj.work_id) for obj in queryset]
+    print('M: ',reviewer_tasks[0].work_id)
+    '''reviewers_id=Review_Work.objects.values_list('users', flat=True)
+    print(reviewers_id)
+    
+    authors_ids_list=[]
+    for i in reviewers_id:
+        if i is None:
+            authors_ids_list.append(None)
+        elif isinstance(i, str):
+            i= i[1:-1]
+            number_list = i.split(", ")
+            for num in number_list:
+                num = num.strip()
+                authors_ids_list.append(num)
+        else:
+            authors_ids_list.append(i)  # Якщо це одиночне число, додаємо його як є
+        print(i)
+        print('L; ',authors_ids_list)
+        
+    print('JL ', authors_ids_list)
+    work_for_review=Review_Work.objects.values_list('work_id', flat=True).filter(user_id=request.user.id)'''
+    #reviewer_tasks=Review_Work.objects.values_list('send_at', flat=True).filter(work_id=work_for_review)
+    '''
+    queryset = Review_Work.objects.select_related('work').filter(id__in=work_for_review)
+    
+    reviewer_tasks = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at) for obj in queryset]
+
+    
+    print(reviewer_tasks.values_list('send_at', flat=True)) '''
+    
+    return render(request, 'base/reviewer_home.html', {'reviewer_tasks':reviewer_tasks})
+
+
+def review_status(request,id):
+    review_element= Work.objects.get(id=id)
+    
+    if request.method == "POST":
+        works=Work.objects.get(title=request.POST['title'])
+        work_status=User.objects.get(username=request.POST['work_status'])
+
+        review_work=Work.objects.get(work=works)
+        review_work.status=work_status
+        review_work.save()
+
+        feedback=request.POST['feedback']
+
+        messages.success(request, works.title +' - '+ review_work.status)
+        print(works,review_work.status)
+        return redirect('reviewer_home')
+    
+    queryset = Review_Work.objects.select_related('work').all()
+    work_ids_list=[]
+    
+    works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at, obj.work_id) for obj in queryset]
+    for i in works_rev_join:
+        if i.users is not None:
+            num_list=i.users[1:-1].split(", ") 
+            for j in num_list:
+                if int(j)==request.user.id:
+                    work_ids_list.append(i.title)
+    reviewer_list=Work.objects.only('id').filter(title__in = work_ids_list)
+    queryset=Review_Work.objects.select_related('work').filter(work_id__in = reviewer_list)
+    reviewer_tasks = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                        obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at, obj.work_id) for obj in queryset]
+   
+    return render(request, 'base/reviewer_home.html', {'reviewer_tasks': reviewer_tasks,'review_element': review_element})
+
+def review_file(request,id):
+    '''rewiew_element = Work.objects.get(id=id)
+    url = rewiew_element.file.path
+    filename = os.path.basename(url)
+    response = StreamingHttpResponse(streaming_content=url)
+    response['Content-Disposition'] = f'attachement; filename="{filename}"'
+
+    return response'''
+    rewiew_element = Work.objects.get(id=id)
+    url = rewiew_element.file.path
+    try:
+        return FileResponse(open(url, 'rb'), content_type='application/pdf')
+    except FileNotFoundError:
+        raise Http404()
+
 
 @csrf_exempt
 def home(request):
-    if request.user.is_superuser:
-        return render(request, "base/adm-upload.html", {'user_data': user_data})
+    '''if request.user.is_superuser:
+        return redirect('admin_view')'''
     
     print(request.user)
     user_data=User_Data.objects.get(user=request.user)
     #return render(request, "base/home.html", {'user_data': user_data})
-
 
     works=Work.objects.all().filter(user=request.user)
     return render(request, "base/home.html", {'form': UploadWorkForm, 'works': works, 'user_data': user_data})
@@ -131,7 +417,7 @@ def upload(request):
             return render(request, "base/upload.html", {'user_data': user_data})
     
         if request.method == "POST":
-            Work.objects.create(
+            works = Work.objects.create(
                     category=request.POST['category'],
                     title=request.POST['title'],
                     authors=request.POST['authors'],
@@ -141,20 +427,28 @@ def upload(request):
                     user=request.user
             )
             messages.success(request, 'Upload '+request.POST['title'])
+            Review_Work.objects.create(user=None,work=works)
             '''form = UploadWorkForm(request.POST, request.FILES) # , request.user, request.FILES.size       as 'file_size')
         print("W:", work)
         if form.is_valid():
             print("Valid")
             form.save()'''
+            
+            
 
-        works=Work.objects.all().filter(user=request.user)
-        user_data=User_Data.objects.get(user=request.user)
+    except IntegrityError:
+            messages.error(request, "Error: There is a work with this title")
+    '''except Exception as e:
+        messages.error(request, "Error: ",repr(e))'''
         
-    except Exception as e:
-        messages.error(request, "Error: ",repr(e))
+    works=Work.objects.all().filter(user=request.user)
+    user_data=User_Data.objects.get(user=request.user)
+
+
         
     #return render(request, "base/upload.html", {'form': UploadWorkForm, 'works': works, 'user_data': user_data})          #base/upload.html
-    return render(request, 'home', {'form': UploadWorkForm, 'works': works, 'user_data': user_data})          #base/upload.html
+    #return render(request, 'base/home.html', {'form': UploadWorkForm, 'works': works, 'user_data': user_data})          #base/upload.html
+    return redirect('home')
 
 def update(request, id):
     try:
@@ -185,6 +479,7 @@ def update(request, id):
 
     #return render(request, 'base/upload.html', {'edit_element': edit_element, 'works': works})
     return render(request, 'base/home.html', {'edit_element': edit_element, 'works': works})
+    #return redirect('home')
 
 def delete(request, id):
     try:
@@ -240,44 +535,61 @@ def committee(request):
 def sign(request):
     print('Y')
     if request.method == "POST":
-        print('Yes')
         username = request.POST.get("username", "").strip()
         email = request.POST.get("email", "").strip()
         password = request.POST.get("password", "").strip()
-
-        action = request.POST.get("submit_type") 
         
         #if <button type="submit" id="form-submit-btn" name ="register">Sign Up</button>    do
         #if "register" in request.POST:  # Registration
-        print('A: ',action)
-        if action =="register":  # Registration
-            print('R')
-            if User.objects.filter(email=email).exists():
-                messages.error(request, "An account with this email already exists.")
-            elif User.objects.filter(username=username).exists():
-                messages.error(request, "This username is already taken.")
-            else:
-                user = User.objects.create_user(username=username, email=email, password=password)
-                user.save()
-                messages.success(request, "Registration successful!")
-                user = authenticate(request, username=email, password=password)
-                user_data = User_Data.objects.create(user=user)
-                user_data.save()
+        
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "An account with this email already exists.")
+        elif User.objects.filter(username=username).exists():
+            messages.error(request, "This username is already taken.")
+        else:
+            user = User.objects.create_user(username=username, email=email, password=password)
+            user.save()
+            messages.success(request, "Registration successful!")
+            user = authenticate(request, username=email, password=password)
+            user_data = User_Data.objects.create(user=user)
 
-                login(request, user)
-                return redirect('home')
+            user_role = User_Role.objects.create(user=user,user_role='user')
+            user_data.save()
+            user_role.save()
 
-        elif action=="login":  # Login
-            print('L')
-            user = authenticate(request, username=email, password=password)  # Login using email
-            if user is not None:
-                login(request, user)
-                messages.success(request, "Successfully logged in!")
-                return redirect('home')
-            else:
-                messages.error(request, "Invalid email or password!")
+            login(request, user)
+            return redirect('home')
                 
     return render(request, "base/sign.html")
+
+def log(request):
+    print('L')
+    if request.method == "POST":
+        email = request.POST.get("email", "").strip()
+        password = request.POST.get("password", "").strip()
+
+        user = authenticate(request, username=email, password=password)  # Login using email
+        print('l: ',user)
+
+        reviewers_id = User_Role.objects.filter(user_role='reviewer')  
+        user_ids = reviewers_id.values_list('user_id', flat=True)  
+        reviewers = User.objects.filter(id__in=user_ids)
+        
+        if user is not None:
+            login(request, user)
+            if user.is_superuser:
+                return redirect('admin_home')
+            elif user in reviewers:
+                return redirect('reviewer_home')
+
+            
+            messages.success(request, "Successfully logged in!")
+            return redirect('home')
+        else:
+            messages.error(request, "Invalid email or password!")
+                
+    return render(request, "base/login.html")
+
 
 def logout(request):
     auth.logout(request)
