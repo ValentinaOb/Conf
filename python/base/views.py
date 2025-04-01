@@ -16,8 +16,9 @@ from django.contrib import auth
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.admin.views.decorators import staff_member_required
 from collections import namedtuple
+from itertools import chain
+from collections import defaultdict
 
-from admin import accept_work, refuse_work
 
 works_rev = namedtuple('Three', ['category', 'title', 'authors','file','file_size','uploaded_at','status', 'users','send_at','work_id'])
 
@@ -28,6 +29,7 @@ def admin_home(request):
     reviewers_id = User_Role.objects.filter(user_role='reviewer')  
     user_ids = reviewers_id.values_list('user_id', flat=True)  
     reviewers = User.objects.filter(id__in=user_ids)  
+
 
     '''rev_works_id = Review_Work.objects.all()
     rev_works_ids = rev_works_id.values_list('user_id', flat=True)  
@@ -65,10 +67,11 @@ def admin_home(request):
     #works_rev_join = Review_Work.objects.select_related('work').all() 
 
 
+    '''
     queryset = Review_Work.objects.select_related('work').all()
     
     works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at, obj.work_id) for obj in queryset]
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]'''
 
     #
     '''
@@ -117,11 +120,83 @@ def admin_home(request):
         if i ==None:
             i="-"'''
     #
+    '''queryset=Review_Work.objects.select_related('user').prefetch_related(
+    'user__work_set',  
+    'user__user_data_set').all()
+    works_rev_join = [works_rev(obj.user.work_set.category, obj.user.work_set.title, obj.user.work_set.authors, obj.user.work_set.file, 
+                            obj.user.work_set.file_size, obj.user.work_set.uploaded_at, obj.user.work_set.status, obj.user, obj.send_at, obj.work_id,obj.user.user_data_set.lastname) for obj in queryset]
+    '''
+    '''work = Work.objects.select_related('user').values('category', 'title','authors','file','file_size','uploaded_at','status','user')
+    user_data = User_Data.objects.select_related('user').values('lastname')
+    review_work = Review_Work.objects.select_related('user').values('send_at', 'work_id')
 
-    '''for w in works:
-        print('W: ',w.title)'''
+    works_rev_join = list(chain(work, user_data, review_work))'''
+    
+    #   3 TABLES
+    work = Work.objects.select_related('user')  # Отримуємо всі `Two` з `One`
+    reviewers_data = User_Data.objects.filter(user_id__in=user_ids)  
+    review_work = Review_Work.objects.all()
 
-    return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join})
+    # Створюємо словник для швидкого доступу до three і four за one_id
+    user_data_dict = {i.user_id: i.lastname for i in reviewers_data}
+    review_work_dict = {i.work_id: i.send_at for i in review_work}
+    #print('d ',user_data_dict)
+
+
+    # 
+    data = User.objects.values('work__id')
+
+    one_data = Review_Work.objects.values('work_id', 'user_id')
+    # Створюємо словник book_id: [lastnames]
+    books_authors = defaultdict(list)
+    for entry in one_data:
+        book_id = entry['work_id']
+        author_id = entry['user_id']
+        books_authors[book_id].append(user_data_dict.get(author_id))
+
+    # Перетворюємо defaultdict у звичайний словник
+    books_authors = dict(books_authors)
+    print('L ',books_authors)
+
+    '''# Групуємо дані у словник
+    books_authors = defaultdict(list)
+    for item in data:
+        print('r ',item['work__id'])
+        books_authors[item['work__id']].append(user_data_dict)
+
+    #
+    books_authors = dict(books_authors)
+
+    print('D ',books_authors)'''
+
+    # Формуємо список об'єктів для шаблону
+    works_rev_join = []
+    for i in work:
+        works_rev_join.append({
+            'id':i.id,
+            'category': i.category, 
+            'title': i.title,
+            'authors': i.authors,
+            'file': i.file,
+            'file_size': i.file_size,
+            'uploaded_at': i.uploaded_at,
+            'status':i.status,
+            'user':i.user,
+
+            #'lastname': user_data_dict.get(i.user_id, ""),
+            'send_at': review_work_dict.get(i.user_id, ""),
+            'lastname': books_authors.get(i.id, [])
+        })
+    
+    '''queryset=Review_Work.objects.select_related('user').prefetch_related(
+    'user__work_set',  
+    'user__user_data_set').all()
+    works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]'''
+    for i in works_rev_join:
+        print(i)
+    
+    return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'books_authors': books_authors})
 
 def to_review(request, id):
     edit_element = Work.objects.get(id=id)
@@ -135,20 +210,29 @@ def to_review(request, id):
             work=works,
             user=reviewer
         )'''
-        review_work=Review_Work.objects.get(work=works)
         #review_work.user=reviewer
         rev_names=request.POST.getlist('reviewer')
-        rev_ids=[]
+        print('re ',rev_names)
+        
+        for i in rev_names:
+            print(i)
+            reviewer =User.objects.get(id=i)
+            Review_Work.objects.create(
+                work=works,
+                user=reviewer
+            )
+            
+        '''rev_ids=[]
         rev_objs=[]
         for i in rev_names:
             rev_objs.append(User.objects.get(username=i))
         for i in rev_objs:
             rev_ids.append(i.id)
         review_work.users=(rev_ids)
-        review_work.save()
+        review_work.save()'''
 
-        messages.success(request, works.title +' - '+ str(rev_names))
-        print(works, review_work.users)
+        messages.success(request, works.title +' - Successfully submitted for review')
+        #messages.success(request, works.title +' - '+ str(rev_names))
         return redirect('admin_home')
     
     '''works=Work.objects.all()
@@ -163,18 +247,53 @@ def to_review(request, id):
     #return redirect('admin_home')
     reviewers_id = User_Role.objects.filter(user_role='reviewer')  
     user_ids = reviewers_id.values_list('user_id', flat=True)  
-    reviewers = User.objects.filter(id__in=user_ids)  
+    reviewers = User_Data.objects.filter(user_id__in=user_ids) 
+    print('L: ',user_ids, '\nJ ',reviewers)
 
     '''rev_works_id = Review_Work.objects.all()
     rev_works_ids = rev_works_id.values_list('users', flat=True)  
     rev_works = User.objects.filter(id__in=rev_works_ids) 
     print(rev_works_ids)
     print('D: ',rev_works)'''
-    queryset = Review_Work.objects.select_related('work').all()
+    '''queryset = Review_Work.objects.select_related('work').all()
     
     works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at) for obj in queryset]
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]
+    '''
 
+    
+    #       Previous Version !!!
+    '''queryset=Review_Work.objects.select_related('user').prefetch_related(
+    'user__work_set',  
+    'user__user_data_set').all()
+    works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id,obj.user_data.lastname) for obj in queryset]'''
+    
+    work = Work.objects.select_related('user')  # Отримуємо всі `Two` з `One`
+    user_data = User_Data.objects.all()
+    review_work = Review_Work.objects.all()
+
+    # Створюємо словник для швидкого доступу до three і four за one_id
+    user_data_dict = {i.user_id: i.lastname for i in user_data}
+    review_work_dict = {i.user_id: i.send_at for i in review_work}
+
+    # Формуємо список об'єктів для шаблону
+    works_rev_join = []
+    for i in work:
+        works_rev_join.append({
+            'id':i.id,
+            'category': i.category, 
+            'title': i.title,
+            'authors': i.authors,
+            'file': i.file,
+            'file_size': i.file_size,
+            'uploaded_at': i.uploaded_at,
+            'status':i.status,
+            'user':i.user,
+
+            'lastname': user_data_dict.get(i.user_id, ""),
+            'send_at': review_work_dict.get(i.user_id, ""),
+        })
     
     return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'edit_element': edit_element})
 
@@ -197,7 +316,7 @@ def status_change(request, id):
     queryset = Review_Work.objects.select_related('work').all()
     
     works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at) for obj in queryset]
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at, obj.id) for obj in queryset]
 
     return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'edit_element': edit_element})
 
@@ -208,7 +327,7 @@ def reviewer_home(request):
     work_ids_list=[]
     
     works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at, obj.work_id) for obj in queryset]
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]
     for i in works_rev_join:
         if i.users is not None:
             num_list=i.users[1:-1].split(", ") 
@@ -220,8 +339,8 @@ def reviewer_home(request):
     reviewer_list=Work.objects.only('id').filter(title__in = work_ids_list)
     queryset=Review_Work.objects.select_related('work').filter(work_id__in = reviewer_list)
     reviewer_tasks = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at, obj.work_id) for obj in queryset]
-    print('M: ',reviewer_tasks[0].work_id)
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]
+
     '''reviewers_id=Review_Work.objects.values_list('users', flat=True)
     print(reviewers_id)
     
@@ -276,7 +395,7 @@ def review_status(request,id):
     work_ids_list=[]
     
     works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at, obj.work_id) for obj in queryset]
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.id) for obj in queryset]
     for i in works_rev_join:
         if i.users is not None:
             num_list=i.users[1:-1].split(", ") 
@@ -363,7 +482,17 @@ def edit_profile(request):
                 obj.username=request.POST['username']
                 obj.save()
 
-            messages.success(request, request.POST['firstname']+', Update Changes')
+            messages.success(request, request.user.username+', Update Changes')
+
+            reviewers_id = User_Role.objects.filter(user_role='reviewer')  
+            user_ids = reviewers_id.values_list('user_id', flat=True)  
+            reviewers = User.objects.filter(id__in=user_ids)
+        
+            if request.user.is_superuser:
+                return redirect('admin_home')
+            elif request.user in reviewers:
+                return redirect('reviewer_home')
+
             return redirect('home')
 
         '''form = UploadUserDataForm(request.user, request.POST)
@@ -427,7 +556,7 @@ def upload(request):
                     user=request.user
             )
             messages.success(request, 'Upload '+request.POST['title'])
-            Review_Work.objects.create(user=None,work=works)
+            #Review_Work.objects.create(work=works)
             '''form = UploadWorkForm(request.POST, request.FILES) # , request.user, request.FILES.size       as 'file_size')
         print("W:", work)
         if form.is_valid():
@@ -551,7 +680,7 @@ def sign(request):
             user.save()
             messages.success(request, "Registration successful!")
             user = authenticate(request, username=email, password=password)
-            user_data = User_Data.objects.create(user=user)
+            user_data = User_Data.objects.create(user=user, lastname=username)
 
             user_role = User_Role.objects.create(user=user,user_role='user')
             user_data.save()

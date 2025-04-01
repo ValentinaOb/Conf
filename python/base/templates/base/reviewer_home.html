@@ -167,7 +167,7 @@
     
     {% if review_element %}
     <div class="form_container">
-        <div class="text">Organisation</div>
+        <div class="text">Organization</div>
         <form action="/reviewer/review_status/{{review_element.id}}" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
           <div class="input-data">

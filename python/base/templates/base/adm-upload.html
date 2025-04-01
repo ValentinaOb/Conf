@@ -151,15 +151,19 @@
             <td>-</td>
             {%endif%}
             {%endfor%} -->
-            <td>{{work_rev.users}}</td>
+            {% for author in work_rev.lastname %}               
+                <td> {{ author }}{% if not forloop.last %}, {% endif %}</td>
+                {% empty %}
+                <td> None</td>
+            {% endfor %}
             <!---->
             
             <!--<td><a href='/update/{{work.id}}'>Update</a></td>-->
             <td><a href="#" class="delete_confirmation btn btn-danger"
                 data-bs-toggle="modal" data-bs-target="#deleteModal"
-                data-work-id="{{ work_rev.work_id }}" data-work-title="{{ work_rev.title }}">Delete</a>
+                data-work-id="{{ work_rev.id }}" data-work-title="{{ work_rev.title }}">Delete</a>
             </td>
-            <td><a href='/admin/to_review/{{work_rev.work_id}}'>Review</a></td>
+            <td><a href='/admin/to_review/{{work_rev.id}}'>Review</a></td>
             
         </tr>
         {% endfor %}
@@ -193,7 +197,7 @@
             <label for="reviewer">Reviewer</label>
             <select id="reviewer" name="reviewer" size="3" multiple required>
                 {% for reviewer in reviewers %}
-                <option value="{{reviewer.username}}">{{reviewer.username}}</option>
+                <option value="{{reviewer.user_id}}">{{reviewer.lastname}}</option>
                 {%endfor%}
             </select>
           </div>

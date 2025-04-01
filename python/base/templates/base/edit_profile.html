@@ -97,7 +97,7 @@
             <button class="btn btn-primary mr-3" type="submit">Save Changes</button>
         </form>
 
-            <a href="{% url 'home' %}">Cancel</a><br>
+            <input type="button" value="Cancel" onClick="javascript:history.go(-1);"></input><br>
         
             <a href="{% url 'change_password' %}" name="change_password">Change password</a>
         <div class="d-sm-flex align-items-center pt-3" id="deactivate">

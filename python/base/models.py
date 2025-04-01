@@ -5,6 +5,13 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from django.contrib.auth import get_user_model
 
+class WorkStatus(models.TextChoices):
+    Send='send'
+    Review='review'
+    Accept='accept'
+    Refuse='refuse'
+    Finalise='finalise' 
+        
 class Work (models.Model):
     #id = models.AutoField(primary_key=True)
     category = models.TextField(null=False)
@@ -14,14 +21,7 @@ class Work (models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     file_size=models.IntegerField(null=False)
 
-    class WorkStatus(models.TextChoices):
-        Send='send'
-        Review='review'
-        Accept='accept'
-        Refuse='refuse'
-
     status= models.CharField(max_length=15,null=False, choices=WorkStatus.choices, default='Send')
-
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 class User_Data (models.Model):
@@ -40,10 +40,14 @@ class User_Data (models.Model):
 
 
 class Review_Work (models.Model):
-    #user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    users= models.TextField(null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    #users= models.TextField(null=True)
     work = models.ForeignKey(Work, on_delete=models.CASCADE)
-    send_at = models.DateTimeField(auto_now_add=True)
+    send_at = models.DateTimeField(auto_now_add=True,null=True)
+    seq = models.IntegerField(null=False,default=0)
+    description = models.TextField(null=True,max_length=80)
+    status= models.CharField(max_length=15,null=False, choices=WorkStatus.choices, default='Send')
+
 
 class User_Role (models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
