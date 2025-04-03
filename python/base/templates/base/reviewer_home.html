@@ -119,19 +119,46 @@
     
     <!-- Message End -->
     <br>
+    <form id="bookForm" method="POST" action="{% url 'view_description' %}">
+        {% csrf_token %}
+        <div class="input-data">
+            <button type="submit" style="width: 200px; height: 50px; margin-left: 50px;">Description</button>
+          </div>
+        <br><br><br>
     <table id="outputTable" style="color: #F5F5F5;text-align: center;">
         <tr>
+            <th></th>
             <th>Category</th>
             <th>Title</th>
             <th>File</th>
             <th>File Size</th>
-            <th>Uploaded At</th>
-            <th>Status</th>
-            <th colspan="3">Action</th>
+            <th>Send At
+                <a href="?filter={{ work_status }}&order=asc" 
+                   style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">
+                    ↑
+                </a>
+                <a href="?filter={{ work_status }}&order=desc" 
+                   style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">
+                    ↓
+                </a>
+            </th>
+            <th>Status 
+                {% for t in available_status %}
+                    <a href="?filter={{ t }}&sort={{ selected_sort }}" style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">{{ t }}</a>
+                {% endfor %}
+            <th colspan="3">Action
+                <a href="?" 
+                   style="margin-left: 5px; padding: 2px 5px; color: white; border-radius: 3px; text-decoration: none;">
+                    ✖
+                </a>
+            </th>
         </tr>
         {%if reviewer_tasks%}
         {% for reviewer_task in reviewer_tasks %}  
         <tr>
+            <td>
+                <input type="checkbox" name="selected_works" class="bookCheckbox" value="{{ reviewer_task.id }}">
+            </td>
             <td>{{reviewer_task.category}}</td>
             <td>{{reviewer_task.title}}</td>
             <td>{{reviewer_task.file}}</td>
@@ -143,9 +170,9 @@
 
 
             <!--<td><a href='/update/{{work.id}}'>Update</a></td>-->
-            <td><button onclick="window.open('/reviewer/review_file/{{reviewer_task.work_id}}', '_blank')">Review</button></td>
+            <td><button onclick="window.open('/reviewer/review_file/{{reviewer_task.id}}', '_blank')">Review</button></td>
             
-            <td><a href='/reviewer/review_status/{{reviewer_task.work_id}}'>Status</a></td>
+            <td><a href='/reviewer/review_status/{{reviewer_task.id}}'>Status</a></td>
             
         </tr>
         {% endfor %}
@@ -162,8 +189,8 @@
             <td></td>
         </tr>
         {%endif%}
-        
     </table>
+    </form>
     
     {% if review_element %}
     <div class="form_container">
@@ -179,14 +206,15 @@
             <label for="work_status">Work Status</label>
             <select id="work_status" name="work_status" required>
                 <option value="accept">Accept</option>
-                <option value="refuse">Refuse</option>
+                <option value="refuse">Refuse</option>                
+                <option value="finalise">Finalise</option>
             </select>
           </div>
 
           <div class="input-data">
           <label for="story">Feedback</label>
 
-        <textarea id="feedback" name="feedback" rows="3" cols="50" onclick="document.getElementById('feedback').value = '' ">For Refusee</textarea>
+        <textarea id="feedback" name="feedback" rows="3" cols="50" onclick="document.getElementById('feedback').value = '' ">Write your review...</textarea>
         </div>
         <br>
 
@@ -204,6 +232,26 @@
             {%endfor%}
 
       <br>
+
+
+      <!---->
+   {% if users_works %}
+   <table id="outputTable" style="color: #F5F5F5;text-align: center;">
+    <tr>
+        <th>Title</th>
+        <th>Status</th>
+        <th>Description</th>
+    </tr>
+    {% for user_work in users_works %}  
+    <tr>
+        <td>{{user_work.work__title}}</td>
+        <td>{{user_work.status}}</td>
+        <td>{{user_work.description}}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
+
 <!-- Table to display uploaded files -->
  <!-- Modal -->
  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">

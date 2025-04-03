@@ -10,6 +10,9 @@ urlpatterns = [
     path('admin/home', views.admin_home, name='admin_home'),
     path('admin/to_review', views.to_review, name='to_review'),
     path('admin/to_review/<int:id>', views.to_review, name='to_review'),
+    
+    path('admin/email_send/', views.email_send, name='email_send'),
+
     path('admin/', admin.site.urls),
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 
@@ -17,7 +20,8 @@ urlpatterns = [
     path('reviewer/review_status', views.review_status, name='review_status'),
     path('reviewer/review_status/<int:id>', views.review_status, name='review_status'),
     path('reviewer/review_file/<int:id>', views.review_file, name='review_file'),    
-    path('reviewer/status_change/<int:id>', views.status_change, name='status_change'),
+    #path('reviewer/status_change/<int:id>', views.status_change, name='status_change'),
+    path('reviewer/view_description/', views.view_description, name='view_description'),
     
     path('', views.base, name='base'),
     path('about/', views.about, name='about'),

@@ -18,7 +18,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from collections import namedtuple
 from itertools import chain
 from collections import defaultdict
-
+from django.core.mail import send_mail
+from datetime import datetime
 
 works_rev = namedtuple('Three', ['category', 'title', 'authors','file','file_size','uploaded_at','status', 'users','send_at','work_id'])
 
@@ -144,8 +145,6 @@ def admin_home(request):
 
 
     # 
-    data = User.objects.values('work__id')
-
     one_data = Review_Work.objects.values('work_id', 'user_id')
     # Створюємо словник book_id: [lastnames]
     books_authors = defaultdict(list)
@@ -156,7 +155,6 @@ def admin_home(request):
 
     # Перетворюємо defaultdict у звичайний словник
     books_authors = dict(books_authors)
-    print('L ',books_authors)
 
     '''# Групуємо дані у словник
     books_authors = defaultdict(list)
@@ -171,6 +169,7 @@ def admin_home(request):
 
     # Формуємо список об'єктів для шаблону
     works_rev_join = []
+    available_status=[]
     for i in work:
         works_rev_join.append({
             'id':i.id,
@@ -187,16 +186,41 @@ def admin_home(request):
             'send_at': review_work_dict.get(i.user_id, ""),
             'lastname': books_authors.get(i.id, [])
         })
+        available_status.append(i.status)
+    available_status=set(available_status)
     
+
+    # Отримуємо тип, за яким фільтруємо
+    work_status = request.GET.get("filter", "")
+
+    # Визначаємо, чи сортуємо за зростанням чи спаданням
+    sort_order = request.GET.get("order", "asc")  # За замовчуванням - зростання
+    reverse = sort_order == "desc"
+
+    # Фільтрація за типом
+    if work_status:
+        works_rev_join = [item for item in works_rev_join if item["status"] == work_status]
+
+    # Сортування за датою
+    works_rev_join.sort(key=lambda x: x["uploaded_at"], reverse=reverse)
+
+    '''work_status = request.GET.get('filter')
+    if work_status:
+        works_rev_join = [item for item in works_rev_join if item['status'] == work_status]
+    print('j ',works_rev_join)
+
+    sort_param = request.GET.get("sort")
+    if sort_param == "date":
+        works_rev_join = sorted(works_rev_join, key=lambda x: x["send_at"], reverse=True)'''
+
     '''queryset=Review_Work.objects.select_related('user').prefetch_related(
     'user__work_set',  
     'user__user_data_set').all()
     works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
                             obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]'''
-    for i in works_rev_join:
-        print(i)
     
-    return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'books_authors': books_authors})
+    return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'books_authors': books_authors,
+                                                    'available_status':available_status,"work_status": work_status,"selected_order": sort_order})
 
 def to_review(request, id):
     edit_element = Work.objects.get(id=id)
@@ -279,6 +303,7 @@ def to_review(request, id):
 
     # Формуємо список об'єктів для шаблону
     works_rev_join = []
+    available_status=[]
     for i in work:
         works_rev_join.append({
             'id':i.id,
@@ -294,10 +319,28 @@ def to_review(request, id):
             'lastname': user_data_dict.get(i.user_id, ""),
             'send_at': review_work_dict.get(i.user_id, ""),
         })
+        available_status.append(i.status)
+    available_status=set(available_status)
     
-    return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'edit_element': edit_element})
+    # Отримуємо тип, за яким фільтруємо
+    work_status = request.GET.get("filter", "")
 
-def status_change(request, id):
+    # Визначаємо, чи сортуємо за зростанням чи спаданням
+    sort_order = request.GET.get("order", "asc")  # За замовчуванням - зростання
+    reverse = sort_order == "desc"
+
+    # Фільтрація за типом
+    if work_status:
+        works_rev_join = [item for item in works_rev_join if item["status"] == work_status]
+
+    # Сортування за датою
+    works_rev_join.sort(key=lambda x: x["uploaded_at"], reverse=reverse)
+        
+    return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'edit_element': edit_element,
+                                                    'available_status': available_status,
+                                                    "work_status": work_status,"selected_order": sort_order})
+#
+'''def status_change(request, id):
     edit_element = Work.objects.get(id=id)
     
     if request.method == "POST":
@@ -319,27 +362,157 @@ def status_change(request, id):
                             obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at, obj.id) for obj in queryset]
 
     return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'edit_element': edit_element})
+'''
+def email_send(request):
+    if 'email' in request.POST:
+        selected_books = request.POST.getlist('selected_works')
+        new_status = request.POST.get('work_status')
+        print('k ', new_status)
 
+        users_works =Work.objects.select_related('user').values('id','title','status', 'user__username', 'user__email').filter(id__in=selected_books)
+        print(users_works)
+        for user_work in users_works:
+            works= Work.objects.filter(id = user_work['id'])
+            current_work=Review_Work.objects.values('description').filter(work_id=user_work['id'])
+            print('h ',current_work, type(current_work))
+            for work in works:
+                work.status=new_status
+                work.save()
+
+            descriptions = "\n".join(i['description'] for i in current_work if i['description'] is not None)
+
+            subject = f"Status Update - {user_work['title']}"
+            message=f"Dear {user_work['user__username']}, \n\nYour work '{user_work['title']}' has been "+new_status +".\nFeedbacks: \n"+descriptions+ "\n\nSincerely, Administration"
+            recipient_email = user_work['user__email']
+
+            send_mail(subject, message, 'your_email@gmail.com', [recipient_email])
+
+            messages.info(request, "Selected work have been marked as Accept and user have been notified")
+            return redirect('admin_home')
+    
+    elif 'description'in request.POST:
+        selected_books = request.POST.getlist('selected_works')
+        print('k ', selected_books)
+        users_works =Review_Work.objects.select_related('work').values('work__title','status','description').filter(work_id__in=selected_books)
+        print('h ',users_works)
+
+        if not selected_books:
+            return redirect('admin_home')
+        
+        reviewers_id = User_Role.objects.filter(user_role='reviewer')  
+        user_ids = reviewers_id.values_list('user_id', flat=True)  
+        reviewers = User.objects.filter(id__in=user_ids)
+        work = Work.objects.select_related('user')  
+        reviewers_data = User_Data.objects.filter(user_id__in=user_ids)  
+        review_work = Review_Work.objects.all()
+        user_data_dict = {i.user_id: i.lastname for i in reviewers_data}
+        review_work_dict = {i.work_id: i.send_at for i in review_work}
+
+        one_data = Review_Work.objects.values('work_id', 'user_id')
+        books_authors = defaultdict(list)
+        for entry in one_data:
+            book_id = entry['work_id']
+            author_id = entry['user_id']
+            books_authors[book_id].append(user_data_dict.get(author_id))
+
+        books_authors = dict(books_authors)
+        works_rev_join = []
+        for i in work:
+            works_rev_join.append({
+                'id':i.id,
+                'category': i.category, 
+                'title': i.title,
+                'authors': i.authors,
+                'file': i.file,
+                'file_size': i.file_size,
+                'uploaded_at': i.uploaded_at,
+                'status':i.status,
+                'user':i.user,
+
+                'send_at': review_work_dict.get(i.user_id, ""),
+                'lastname': books_authors.get(i.id, [])
+            })
+        
+        
+        return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'users_works': users_works})
+    return redirect('admin_home')
 
 
 def reviewer_home(request):
-    queryset = Review_Work.objects.select_related('work').all()
+    #   3 TABLES
+    work_id_for_review=[Review_Work.objects.values('work_id').filter(user_id=request.user.id)]  
+    work=Work.objects.select_related('user').filter(id__in=work_id_for_review)
+    reviewers_data = User_Data.objects.filter(user_id=request.user.id)  
+    review_work = Review_Work.objects.filter(user_id=request.user.id)  
+
+    user_data_dict = {i.user_id: i.lastname for i in reviewers_data}
+    review_work_dict = {i.work_id: i.send_at for i in review_work}    
+    review_work_status_dict = {i.work_id: i.status for i in review_work} 
+    
+    one_data = Review_Work.objects.values('work_id', 'user_id')
+    books_authors = defaultdict(list)
+    for entry in one_data:
+        book_id = entry['work_id']
+        author_id = entry['user_id']
+        books_authors[book_id].append(user_data_dict.get(author_id))
+
+    books_authors = dict(books_authors)
+    reviewer_tasks = []
+    available_status=[]
+    for i in work:
+        reviewer_tasks.append({
+            'id':i.id,
+            'category': i.category, 
+            'title': i.title,
+            'authors': i.authors,
+            'file': i.file,
+            'file_size': i.file_size,
+            'uploaded_at': i.uploaded_at,
+            'user':i.user,
+
+            #'lastname': user_data_dict.get(i.user_id, ""),
+            'send_at': review_work_dict.get(i.id, ""),
+            'lastname': books_authors.get(i.id, []),
+            'status': review_work_status_dict.get(i.id, ""),
+        })
+        
+        available_status.append(review_work_status_dict.get(i.id, ""))# Отримуємо унікальні типи для фільтра
+    available_status=set(available_status)
+    
+    
+    # Отримуємо тип, за яким фільтруємо
+    work_status = request.GET.get("filter", "")
+
+    # Визначаємо, чи сортуємо за зростанням чи спаданням
+    sort_order = request.GET.get("order", "asc")  # За замовчуванням - зростання
+    reverse = sort_order == "desc"
+
+    # Фільтрація за типом
+    if work_status:
+        reviewer_tasks = [item for item in reviewer_tasks if item["status"] == work_status]
+
+    # Сортування за датою
+    reviewer_tasks.sort(key=lambda x: x["uploaded_at"], reverse=reverse)
+
+    
+    '''queryset = Review_Work.objects.select_related('work').all()
     work_ids_list=[]
     
     works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
                             obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]
-    for i in works_rev_join:
+    print(works_rev_join)
+    for i in works_rev_join:    
         if i.users is not None:
             num_list=i.users[1:-1].split(", ") 
             for j in num_list:
                 if int(j)==request.user.id:
-                    work_ids_list.append(i.title)
+                    work_ids_list.append(i.title)'''
 
     #reviewer_tasks=Work.objects.filter(title__in = work_ids_list)
-    reviewer_list=Work.objects.only('id').filter(title__in = work_ids_list)
+    '''reviewer_list=Work.objects.only('id').filter(title__in = work_ids_list)
     queryset=Review_Work.objects.select_related('work').filter(work_id__in = reviewer_list)
     reviewer_tasks = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]'''
 
     '''reviewers_id=Review_Work.objects.values_list('users', flat=True)
     print(reviewers_id)
@@ -371,27 +544,43 @@ def reviewer_home(request):
     
     print(reviewer_tasks.values_list('send_at', flat=True)) '''
     
-    return render(request, 'base/reviewer_home.html', {'reviewer_tasks':reviewer_tasks})
+    return render(request, 'base/reviewer_home.html', {'reviewer_tasks':reviewer_tasks,'available_status':available_status,
+                                                    "work_status": work_status,"selected_order": sort_order})
+
+def work_status_check(id):
+    status_check=Review_Work.objects.values('status').order_by('user_id').filter(work_id=id)
+    status_list=[]
+    for i in status_check:
+        status_list.append(i['status'])
+    print('Y ', status_list)
+    work= Work.objects.get(id=id)
+    if all(i == 'accept' for i in status_list):    
+        work.status='accept'
+        work.save()
+    if 'refuse' in status_list:
+        work.status='refuse'
+        work.save()
+    if 'finalise' in status_list:
+        work.status='finalise'
+        work.save()        
 
 
 def review_status(request,id):
     review_element= Work.objects.get(id=id)
     
     if request.method == "POST":
-        works=Work.objects.get(title=request.POST['title'])
-        work_status=User.objects.get(username=request.POST['work_status'])
+        #works=Work.objects.get(title=request.POST['title'], user_id=request.user.id)
 
-        review_work=Work.objects.get(work=works)
-        review_work.status=work_status
+        review_work=Review_Work.objects.get(work_id=id, user_id=request.user.id)
+        review_work.status=request.POST['work_status']
+        review_work.description=request.POST['feedback']
         review_work.save()
+        work_status_check(id)
 
-        feedback=request.POST['feedback']
-
-        messages.success(request, works.title +' - '+ review_work.status)
-        print(works,review_work.status)
+        messages.success(request, request.POST['title'] +' - '+ review_work.status)
         return redirect('reviewer_home')
     
-    queryset = Review_Work.objects.select_related('work').all()
+    '''queryset = Review_Work.objects.select_related('work').all()
     work_ids_list=[]
     
     works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
@@ -405,9 +594,62 @@ def review_status(request,id):
     reviewer_list=Work.objects.only('id').filter(title__in = work_ids_list)
     queryset=Review_Work.objects.select_related('work').filter(work_id__in = reviewer_list)
     reviewer_tasks = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                        obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at, obj.work_id) for obj in queryset]
+                        obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at, obj.work_id) for obj in queryset]'''
+    #   3 TABLES
+    work_id_for_review=[Review_Work.objects.values('work_id').filter(user_id=request.user.id)]  
+    work=Work.objects.select_related('user').filter(id__in=work_id_for_review)
+    reviewers_data = User_Data.objects.filter(user_id=request.user.id)  
+    review_work = Review_Work.objects.filter(user_id=request.user.id)  
+
+    user_data_dict = {i.user_id: i.lastname for i in reviewers_data}
+    review_work_dict = {i.work_id: i.send_at for i in review_work}   
+    review_work_status_dict = {i.work_id: i.status for i in review_work} 
+    
+    one_data = Review_Work.objects.values('work_id', 'user_id')
+    books_authors = defaultdict(list)
+    for entry in one_data:
+        book_id = entry['work_id']
+        author_id = entry['user_id']
+        books_authors[book_id].append(user_data_dict.get(author_id))
+
+    books_authors = dict(books_authors)
+    reviewer_tasks = []
+    available_status=[]
+    for i in work:
+        reviewer_tasks.append({
+            'id':i.id,
+            'category': i.category, 
+            'title': i.title,
+            'authors': i.authors,
+            'file': i.file,
+            'file_size': i.file_size,
+            'uploaded_at': i.uploaded_at,
+            'user':i.user,
+
+            #'lastname': user_data_dict.get(i.user_id, ""),
+            'status': review_work_status_dict.get(i.id, ""),
+            'send_at': review_work_dict.get(i.id, ""),
+            'lastname': books_authors.get(i.id, [])
+        })
+        available_status.append(review_work_status_dict.get(i.id, ""))# Отримуємо унікальні типи для фільтра
+    available_status=set(available_status)
    
-    return render(request, 'base/reviewer_home.html', {'reviewer_tasks': reviewer_tasks,'review_element': review_element})
+    # Отримуємо тип, за яким фільтруємо
+    work_status = request.GET.get("filter", "")
+
+    # Визначаємо, чи сортуємо за зростанням чи спаданням
+    sort_order = request.GET.get("order", "asc")  # За замовчуванням - зростання
+    reverse = sort_order == "desc"
+
+    # Фільтрація за типом
+    if work_status:
+        reviewer_tasks = [item for item in reviewer_tasks if item["status"] == work_status]
+
+    # Сортування за датою
+    reviewer_tasks.sort(key=lambda x: x["uploaded_at"], reverse=reverse)
+
+    return render(request, 'base/reviewer_home.html', {'reviewer_tasks': reviewer_tasks,'review_element': review_element,
+                                                       'available_status':available_status, "work_status": work_status,"selected_order": sort_order})
 
 def review_file(request,id):
     '''rewiew_element = Work.objects.get(id=id)
@@ -418,11 +660,85 @@ def review_file(request,id):
 
     return response'''
     rewiew_element = Work.objects.get(id=id)
+    print('j ',rewiew_element.file.path)
     url = rewiew_element.file.path
     try:
-        return FileResponse(open(url, 'rb'), content_type='application/pdf')
+        rewiew_element.status='review'
+        rewiew_element.save()
+        response = FileResponse(open(url, 'rb'), content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="{rewiew_element.title}"'
+        #return FileResponse(open(url, 'rb'), content_type='application/pdf')
+        return response
     except FileNotFoundError:
         raise Http404()
+
+def view_description(request):    
+    if request.POST:
+        selected_books = request.POST.getlist('selected_works')
+        print('k ', selected_books)
+        users_works =Review_Work.objects.select_related('work').values('work__title','status','description').filter(work_id__in=selected_books, user_id=request.user.id)
+        print('h ',users_works)
+
+        if not selected_books:
+            return redirect('reviewer_home')
+            
+        work_id_for_review=[Review_Work.objects.values('work_id').filter(user_id=request.user.id)]  
+        work=Work.objects.select_related('user').filter(id__in=work_id_for_review)
+        reviewers_data = User_Data.objects.filter(user_id=request.user.id)  
+        review_work = Review_Work.objects.filter(user_id=request.user.id)  
+
+        user_data_dict = {i.user_id: i.lastname for i in reviewers_data}
+        review_work_dict = {i.work_id: i.send_at for i in review_work}    
+        review_work_status_dict = {i.work_id: i.status for i in review_work} 
+        
+        one_data = Review_Work.objects.values('work_id', 'user_id')
+        books_authors = defaultdict(list)
+        for entry in one_data:
+            book_id = entry['work_id']
+            author_id = entry['user_id']
+            books_authors[book_id].append(user_data_dict.get(author_id))
+
+        books_authors = dict(books_authors)
+        reviewer_tasks = []
+        available_status=[]
+        for i in work:
+            reviewer_tasks.append({
+                'id':i.id,
+                'category': i.category, 
+                'title': i.title,
+                'authors': i.authors,
+                'file': i.file,
+                'file_size': i.file_size,
+                'uploaded_at': i.uploaded_at,
+                'user':i.user,
+
+                #'lastname': user_data_dict.get(i.user_id, ""),
+                'send_at': review_work_dict.get(i.id, ""),
+                'lastname': books_authors.get(i.id, []),
+                'status': review_work_status_dict.get(i.id, ""),
+            })
+            available_status.append(review_work_status_dict.get(i.id, ""))# Отримуємо унікальні типи для фільтра
+        available_status=set(available_status)
+    
+            # Отримуємо тип, за яким фільтруємо
+        work_status = request.GET.get("filter", "")
+
+        # Визначаємо, чи сортуємо за зростанням чи спаданням
+        sort_order = request.GET.get("order", "asc")  # За замовчуванням - зростання
+        reverse = sort_order == "desc"
+
+        # Фільтрація за типом
+        if work_status:
+            reviewer_tasks = [item for item in reviewer_tasks if item["status"] == work_status]
+
+        # Сортування за датою
+        reviewer_tasks.sort(key=lambda x: x["uploaded_at"], reverse=reverse)
+        
+        return render(request, 'base/reviewer_home.html', {'reviewer_tasks':reviewer_tasks, 'users_works': users_works,
+                                                           'available_status':available_status, "work_status": work_status,"selected_order": sort_order})
+
+    return redirect('reviewer_home')
+
 
 
 @csrf_exempt

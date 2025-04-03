@@ -50,6 +50,28 @@ def refuse_work(ModelAdmin, request, queryset):
         )
         messages.success(request, works.title +' - Refuse')
 
+@admin.action(description="Refuse_Work")
+def finalise_work(ModelAdmin, request, queryset):
+    work_to_ship = queryset.exclude(status=Work.WorkStatus.Refuse)
+    works = list(work_to_ship)
+
+    work_to_ship.update(status=Work.WorkStatus.Refuse)
+
+    for work in works:
+        user=work.user
+        user.email_user(
+            'Your Work has been Finalised',
+            f'Dear {user.username}, \n\n Your work "{work.title}" has been Finalised.',
+            'admin@example.com',
+            fail_silently=False
+        )
+        ModelAdmin.message_user(
+            request,
+            "Selected work have been marked as Finalise and user have been notified."
+        )
+        messages.success(request, works.title +' - Finalise')
+
+
 @admin.action(description="Review_Work")
 def review_work(ModelAdmin, request, queryset):
     work_to_ship = queryset.exclude(status=Work.WorkStatus.Review)

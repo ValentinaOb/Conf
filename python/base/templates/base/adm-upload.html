@@ -119,21 +119,58 @@
     
     <!-- Message End -->
     <br>
+    <form id="bookForm" method="POST" action="{% url 'email_send' %}">
+        {% csrf_token %}
+        <div class="input-data">
+            <label for="work_status">Status</label>
+            <select id="work_status" name="work_status" style="width: 350px;" required>
+                <option value="accept">Accept</option>
+                <option value="refuse">Refuse</option>                
+                <option value="finalise">Finalise</option>
+            </select>
+            <button type="submit" style="width: 250px; height: 50px; margin-left: 50px;" name="email">Apply</button>
+            <button type="submit" style="width: 200px; height: 50px; margin-left: 50px;" name="description">Description</button>
+          </div>
+        <br>
+        
     <table id="outputTable" style="color: #F5F5F5;text-align: center;">
         <tr>
+            <th></th>
             <th>Category</th>
             <th>Title</th>
             <th>Authors</th>
             <th>File</th>
             <th>File Size</th>
-            <th>Uploaded At</th>
-            <th>Status</th>
+            <th>Uploaded At
+                <a href="?filter={{ work_status }}&order=asc" 
+                   style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">
+                    ↑
+                </a>
+                <a href="?filter={{ work_status }}&order=desc" 
+                   style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">
+                    ↓
+                </a>
+                <!--<a href="?sort=date&filter={{ work_status }}" style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">↑↓</a>
+                --></th>
+            <th>Status 
+                {% for t in available_status %}
+                    <a href="?filter={{ t }}&sort={{ selected_sort }}" style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">{{ t }}</a>
+                {% endfor %}
+            </th>
             <th>Reviewers</th>
-            <th colspan="3">Action</th>
+            <th colspan="3">Action 
+                <a href="?" 
+                   style="margin-left: 5px; padding: 2px 5px; color: white; border-radius: 3px; text-decoration: none;">
+                    ✖
+                </a>
+            </th>
         </tr>
         {% if works_rev_join %}
         {% for work_rev in works_rev_join %}  
         <tr>
+            <td>
+                <input type="checkbox" name="selected_works" class="bookCheckbox" value="{{ work_rev.id }}">
+            </td>
             <td>{{work_rev.category}}</td>
             <td>{{work_rev.title}}</td>
             <td>{{work_rev.authors}}</td>
@@ -142,20 +179,23 @@
             <td>{{work_rev.uploaded_at}}</td>
             <td>{{work_rev.status}}</td>
 
-
-            <!--    Rev     
-            {% for rev_work in rev_works %}
-            {%if rev_work.work_id == work.id%}            
-            <td>{{rev_work.username}}</td>
-            {%else%}
-            <td>-</td>
-            {%endif%}
-            {%endfor%} -->
-            {% for author in work_rev.lastname %}               
-                <td> {{ author }}{% if not forloop.last %}, {% endif %}</td>
+            <td>
+                {% for author in work_rev.lastname %}
+                    {{ author }}{% if not forloop.last %}, {% endif %}
                 {% empty %}
-                <td> None</td>
-            {% endfor %}
+                    None
+                {% endfor %}
+            </td>
+            <!--    <BR>
+            <td>
+                {% for author in work_rev.lastname %}
+                    {{ author }}<br>
+                {% empty %}
+                    None
+                {% endfor %}
+            </td>-->
+
+            
             <!---->
             
             <!--<td><a href='/update/{{work.id}}'>Update</a></td>-->
@@ -182,6 +222,7 @@
         {%endif%}
         
     </table>
+    </form>
     
     {% if edit_element %}
     <div class="form_container">
@@ -215,6 +256,25 @@
             {%endfor%}
 
       <br>
+
+<!---->
+   {% if users_works %}
+   <table id="outputTable" style="color: #F5F5F5;text-align: center;">
+    <tr>
+        <th>Title</th>
+        <th>Status</th>
+        <th>Description</th>
+    </tr>
+    {% for user_work in users_works %}  
+    <tr>
+        <td>{{user_work.work__title}}</td>
+        <td>{{user_work.status}}</td>
+        <td>{{user_work.description}}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
+
 <!-- Table to display uploaded files -->
  <!-- Modal -->
  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
