@@ -170,6 +170,7 @@ def admin_home(request):
     # Формуємо список об'єктів для шаблону
     works_rev_join = []
     available_status=[]
+    available_email_status=[]
     for i in work:
         works_rev_join.append({
             'id':i.id,
@@ -181,21 +182,28 @@ def admin_home(request):
             'uploaded_at': i.uploaded_at,
             'status':i.status,
             'user':i.user,
+            'email_status':i.email_status,
 
             #'lastname': user_data_dict.get(i.user_id, ""),
             'send_at': review_work_dict.get(i.user_id, ""),
             'lastname': books_authors.get(i.id, [])
         })
         available_status.append(i.status)
+        available_email_status.append(i.email_status)
     available_status=set(available_status)
+    available_email_status=set(available_email_status)
     
 
     # Отримуємо тип, за яким фільтруємо
     work_status = request.GET.get("filter", "")
+    selected_email_status = request.GET.get("email_status", "")
 
     # Визначаємо, чи сортуємо за зростанням чи спаданням
     sort_order = request.GET.get("order", "asc")  # За замовчуванням - зростання
     reverse = sort_order == "desc"
+
+    if selected_email_status:
+        works_rev_join = [item for item in works_rev_join if item["email_status"] == selected_email_status]
 
     # Фільтрація за типом
     if work_status:
@@ -220,7 +228,8 @@ def admin_home(request):
                             obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]'''
     
     return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'books_authors': books_authors,
-                                                    'available_status':available_status,"work_status": work_status,"selected_order": sort_order})
+                                                    'available_status':available_status,"work_status": work_status,"selected_order": sort_order, 
+                                                    'available_email_status':available_email_status,'selected_email_status':selected_email_status})
 
 def to_review(request, id):
     edit_element = Work.objects.get(id=id)
@@ -315,19 +324,27 @@ def to_review(request, id):
             'uploaded_at': i.uploaded_at,
             'status':i.status,
             'user':i.user,
+            'email_status':i.email_status,
 
             'lastname': user_data_dict.get(i.user_id, ""),
             'send_at': review_work_dict.get(i.user_id, ""),
         })
         available_status.append(i.status)
+        available_email_status.append(i.email_status)
     available_status=set(available_status)
+    available_email_status=set(available_email_status)
     
+
     # Отримуємо тип, за яким фільтруємо
     work_status = request.GET.get("filter", "")
+    selected_email_status = request.GET.get("email_status", "")
 
     # Визначаємо, чи сортуємо за зростанням чи спаданням
     sort_order = request.GET.get("order", "asc")  # За замовчуванням - зростання
     reverse = sort_order == "desc"
+
+    if selected_email_status:
+        works_rev_join = [item for item in works_rev_join if item["email_status"] == selected_email_status]
 
     # Фільтрація за типом
     if work_status:
@@ -337,8 +354,8 @@ def to_review(request, id):
     works_rev_join.sort(key=lambda x: x["uploaded_at"], reverse=reverse)
         
     return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'edit_element': edit_element,
-                                                    'available_status': available_status,
-                                                    "work_status": work_status,"selected_order": sort_order})
+                                                    'available_status': available_status,"work_status": work_status,"selected_order": sort_order,
+                                                    'available_email_status':available_email_status,'selected_email_status':selected_email_status})
 #
 '''def status_change(request, id):
     edit_element = Work.objects.get(id=id)
@@ -367,7 +384,6 @@ def email_send(request):
     if 'email' in request.POST:
         selected_books = request.POST.getlist('selected_works')
         new_status = request.POST.get('work_status')
-        print('k ', new_status)
 
         users_works =Work.objects.select_related('user').values('id','title','status', 'user__username', 'user__email').filter(id__in=selected_books)
         print(users_works)
@@ -377,24 +393,27 @@ def email_send(request):
             print('h ',current_work, type(current_work))
             for work in works:
                 work.status=new_status
+                work.email_status='submitted'
                 work.save()
 
             descriptions = "\n".join(i['description'] for i in current_work if i['description'] is not None)
 
             subject = f"Status Update - {user_work['title']}"
-            message=f"Dear {user_work['user__username']}, \n\nYour work '{user_work['title']}' has been "+new_status +".\nFeedbacks: \n"+descriptions+ "\n\nSincerely, Administration"
+            if new_status=='finalise':
+                message=f"Dear {user_work['user__username']}, \n\nYour work '{user_work['title']}' has been "+new_status +".\nFeedbacks: \n"+descriptions+ "\n\nPlease, after finalising the work, do not send a new one, but edit this one. Thank you.\n\nSincerely, Administration"
+            else:
+                message=f"Dear {user_work['user__username']}, \n\nYour work '{user_work['title']}' has been "+new_status +".\nFeedbacks: \n"+descriptions+ "\n\nSincerely, Administration"
+            
             recipient_email = user_work['user__email']
 
             send_mail(subject, message, 'your_email@gmail.com', [recipient_email])
 
-            messages.info(request, "Selected work have been marked as Accept and user have been notified")
+            messages.info(request, f"Selected work have been marked as {new_status} and user have been notified")
             return redirect('admin_home')
     
     elif 'description'in request.POST:
         selected_books = request.POST.getlist('selected_works')
-        print('k ', selected_books)
-        users_works =Review_Work.objects.select_related('work').values('work__title','status','description').filter(work_id__in=selected_books)
-        print('h ',users_works)
+        users_works =Review_Work.objects.select_related('work').values('work__title','status','description','user__user_data__lastname').filter(work_id__in=selected_books)
 
         if not selected_books:
             return redirect('admin_home')
@@ -903,6 +922,10 @@ def update(request, id):
         print("hee")
 
         if "updaterecord" in request.POST:
+            # Забороняємо користувачу редагувати, якщо робота вже на перевірці
+            if obj.status=='review':
+                return redirect('home')
+
             file = request.FILES.get('file', edit_element.file)
             print(file)
             category = request.POST.get('category', edit_element.category)
@@ -913,6 +936,7 @@ def update(request, id):
             obj.file = file
             obj.title = title
             obj.authors = authors
+            obj.email_status='unsubmitted'
             obj.save()
             messages.success(request, 'Update '+ obj.title)
 
