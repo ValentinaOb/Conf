@@ -198,7 +198,6 @@ def admin_home(request):
     work_status = request.GET.get("filter", "")
     selected_email_status = request.GET.get("email_status", "")
     user_role = request.GET.get("role_filter", "")
-    print('k ',user_role)
 
     # Визначаємо, чи сортуємо за зростанням чи спаданням
     sort_order = request.GET.get("order", "asc")  # За замовчуванням - зростання
@@ -347,6 +346,7 @@ def to_review(request, id):
     # Отримуємо тип, за яким фільтруємо
     work_status = request.GET.get("filter", "")
     selected_email_status = request.GET.get("email_status", "")
+    user_role = request.GET.get("role_filter", "")
 
     # Визначаємо, чи сортуємо за зростанням чи спаданням
     sort_order = request.GET.get("order", "asc")  # За замовчуванням - зростання
@@ -361,10 +361,16 @@ def to_review(request, id):
 
     # Сортування за датою
     works_rev_join.sort(key=lambda x: x["uploaded_at"], reverse=reverse)
+
+
+    users_roles= User_Data.objects.values('user_id','firstname','lastname','job','user__user_role__user_role','user__username')
+    if user_role:
+        users_roles = [item for item in users_roles if item["user__user_role__user_role"] == user_role]
         
     return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'edit_element': edit_element,
                                                     'available_status': available_status,"work_status": work_status,"selected_order": sort_order,
-                                                    'available_email_status':available_email_status,'selected_email_status':selected_email_status})
+                                                    'available_email_status':available_email_status,'selected_email_status':selected_email_status,
+                                                    'users_roles':users_roles})
 #
 '''def status_change(request, id):
     edit_element = Work.objects.get(id=id)
