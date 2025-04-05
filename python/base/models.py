@@ -39,7 +39,7 @@ class User_Data (models.Model):
     phone = PhoneNumberField(null=True)
     avatar = models.FileField(upload_to='avatars/', default='avatars/default.png', null=True, blank=True)
     country = models.TextField(null=True)
-    language = models.TextField(null=True)
+    language = models.TextField(null=True)  #   ?
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     def save(self, *args, **kwargs):
         if not self.avatar:  # If img is empty, set the default
@@ -52,7 +52,7 @@ class Review_Work (models.Model):
     #users= models.TextField(null=True)
     work = models.ForeignKey(Work, on_delete=models.CASCADE)
     send_at = models.DateTimeField(auto_now_add=True,null=True)
-    seq = models.IntegerField(null=False,default=0)
+    #seq = models.IntegerField(null=False,default=0)
     description = models.TextField(null=True,max_length=80)
     status= models.CharField(max_length=15,null=False, choices=Work_Status.choices, default='Send')
 

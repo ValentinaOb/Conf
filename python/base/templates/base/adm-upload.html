@@ -128,7 +128,7 @@
                 <option value="refuse">Refuse</option>                
                 <option value="finalise">Finalise</option>
             </select>
-            <button type="submit" style="width: 250px; height: 50px; margin-left: 50px;" name="email">Apply</button>
+            <button type="submit" style="width: 250px; height: 50px; margin-left: 50px;" name="email">Send</button>
             <button type="submit" style="width: 200px; height: 50px; margin-left: 50px;" name="description">Description</button>
           </div>
         <br>
@@ -284,6 +284,66 @@
 </table>
 {% endif %}
 
+
+<!--        User Role       -->
+<form id="bookForm" method="POST" action="{% url 'assign_role' %}">
+    {% csrf_token %}
+    <div class="input-data">
+        <label for="user_role">Role</label>
+        <select id="user_role" name="user_role" style="width: 350px;" required>
+            <option value="admin">Admin</option>
+            <option value="reviewer">Reviewer</option>                
+            <option selected="selected" value="user">User</option>
+        </select>
+        <button type="submit" style="width: 250px; height: 50px; margin-left: 50px;">Apply</button>
+        <a href="#" class="deactivate_confirmation btn btn-danger"
+                data-bs-toggle="modal" data-bs-target="#deactivateModal"
+                data-user-id="{{ users_role.user_id }}" data-user-username="{{ users_role.user__username }}">Deactivate</a>
+      </div>
+    <br>
+<table id="outputTable" style="color: #F5F5F5;text-align: center;">
+    <tr>
+        <th></th>
+        <th>User</th>
+        <th>Username</th>
+        <th>Job</th>
+        <th>Role 
+            <a href="?role_filter=admin" style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">Admin</a>
+            <a href="?role_filter=reviewer" style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">Reviewer</a>
+            <a href="?role_filter=user" style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">User</a>
+            <a href="?" 
+                style="margin-left: 5px; padding: 2px 5px; color: white; border-radius: 3px; text-decoration: none;">
+                    ✖
+                </a>
+        </th>
+    </tr>
+{% if users_roles %}
+        {% for users_role in users_roles %}  
+        <tr>
+            <td>
+                <input type="checkbox" name="selected_users" class="bookCheckbox" value="{{ users_role.user_id }}">
+            </td>
+            <td>{{users_role.user__username}}</td>
+            <td>{{users_role.lastname}} {{users_role.firstname}}</td>
+            <td>{{users_role.job}}</td>
+            <td>{{users_role.user__user_role__user_role}}</td>
+            
+        </tr>
+        {% endfor %}
+        
+        {%else%}
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        {%endif%}
+        
+    </table>
+    </form>
+
+
 <!-- Table to display uploaded files -->
  <!-- Modal -->
  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -299,6 +359,24 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <a href="#" id="confirmDelete" class="btn btn-danger">Confirm Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deactivateModal" tabindex="-1" aria-labelledby="deactivateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deactivateModalLabel">Deactivate Confirmation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to deactivate <strong id="userusername"></strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="confirmDeactivate" class="btn btn-danger">Confirm Deactivate</a>
             </div>
         </div>
     </div>
@@ -395,6 +473,20 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
           } else {
               console.error("workId not found!");
           }
+      });
+
+
+      document.querySelectorAll(".deactivate_confirmation").forEach(button => {
+          button.addEventListener("click", function () {
+              let userId = this.getAttribute("data-user-id");
+              document.getElementById("confirmDeactivate").setAttribute("data-user-id", userId);
+          });
+      });
+
+      document.getElementById("confirmDeactivate").addEventListener("click", function (event) {
+          event.preventDefault(); // Забороняємо стандартний перехід по "#"
+          window.location.href = `/deactivate_account/`; // URL
+
       });
   });
 </script>

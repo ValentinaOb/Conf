@@ -12,6 +12,7 @@ urlpatterns = [
     path('admin/to_review/<int:id>', views.to_review, name='to_review'),
     
     path('admin/email_send/', views.email_send, name='email_send'),
+    path('admin/assign_role/', views.assign_role, name='assign_role'),
 
     path('admin/', admin.site.urls),
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
