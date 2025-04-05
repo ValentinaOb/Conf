@@ -109,7 +109,8 @@
                 {% csrf_token %}
                 <button type="submit">Deactivate</button>
             </form>-->
-            <form id="deactivateForm" action="{% url 'deactivate_account' %}" method="POST">
+            <!--<form id="deactivateForm" action="{% url 'deactivate_account' %}" method="POST">-->
+            <form id="deactivateForm" action="/deactivate_account/{{user_data.user_id}}" method="POST">
                 {% csrf_token %}
                 <button type="button" class="btn btn-warning" id="openDeactivateModal">Deactivate</button>
             </form>

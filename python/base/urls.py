@@ -48,6 +48,7 @@ urlpatterns = [
     path('change_password/', views.change_password, name='change_password'),   
     
     path('deactivate_account/', views.deactivate_account, name='deactivate_account'),   
+    path('deactivate_account/<int:id>', views.deactivate_account, name='deactivate_account'),   
         
     path('upload/', views.upload, name='upload'),
     

@@ -899,55 +899,27 @@ def change_password(request):
     return render(request,"base/forgot_password.html")
 '''
 
-def deactivate_account(request):
+def deactivate_account(request,id):
+    user = User.objects.get(id=id)
+    user_data = User_Data.objects.get(user_id=id)
+    works = Work.objects.all().filter(user=user)
+    user_role=User_Role.objects.get(user_id=id)
+        
+    if len(works)!=0:
+        for j in works:
+            review_works = Review_Work.objects.all().filter(work_id=j.id)
+            for k in review_works:
+                k.delete()
+            os.remove(str(j.file.path))
+            j.delete()
+    user.delete()
+    user_role.delete()
+    user_data.delete()
+
     if request.user.is_superuser:
-        selected_users = request.POST.getlist('selected_users')
-        if not selected_users:
-            return redirect('admin_home')
-        
-        usernames=[]
-        for i in selected_users:
-            users = User.objects.filter(id=i.id)
-            users_data = User_Data.objects.filter(id=i.id)
-            works = Work.objects.all().filter(user=i)
-            users_role=User_Role.objects.filter(id=i.id)
-            
-            usernames.append(users.username+'. ')
-        
-            if len(works)!=0:
-                for j in works:
-                    review_works = Review_Work.objects.all().filter(work_id=j.id)
-                    for k in review_works:
-                        k.delete()
-                    os.remove(str(j.file.path))
-                    j.delete()
-            for r in users_role:
-                r.delete()
-            for d in users_data:
-                d.delete()
-            for user in users:
-                user.delete()
-        messages.success(request, 'Deactivate '+usernames)
         return redirect('admin_home')
     
-    else:
-        user = User.objects.get(id=request.user.id)
-        user_data = User_Data.objects.get(id=request.user.id)
-        works = Work.objects.all().filter(user=request.user)
-        user_role=User_Role.objects.get(id=request.user.id)
-        
-        if len(works)!=0:
-            for j in works:
-                review_works = Review_Work.objects.all().filter(work_id=j.id)
-                for k in review_works:
-                    k.delete()
-                os.remove(str(j.file.path))
-                j.delete()
-        user.delete()
-        user_role.delete()
-        user_data.delete()
-    
-        return redirect('base')
+    return redirect('base')
         
 
 def upload(request): 
@@ -1089,9 +1061,9 @@ def sign(request):
         #if "register" in request.POST:  # Registration
         
         if User.objects.filter(email=email).exists():
-            messages.error(request, "An account with this email already exists.")
+            messages.error(request, "An account with this email already exists.", status=405)
         elif User.objects.filter(username=username).exists():
-            messages.error(request, "This username is already taken.")
+            messages.error(request, "This username is already taken.", status=405)
         else:
             user = User.objects.create_user(username=username, email=email, password=password)
             user.save()
@@ -1104,9 +1076,9 @@ def sign(request):
             user_role.save()
 
             login(request, user)
-            return redirect('home')
+            return redirect('home', status=201)
                 
-    return render(request, "base/sign.html")
+    return render(request, "base/sign.html", status=405)
 
 def log(request):
     print('L')
