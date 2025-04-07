@@ -872,6 +872,7 @@ def edit_profile(request):
                 form.save()'''
     except Exception as e:
         messages.error(request, "Error: ",repr(e))
+        return render(request,"base/edit_profile.html",{'user_data':user_data, 'form': UploadUserDataForm}, status=400)
 
     return render(request,"base/edit_profile.html",{'user_data':user_data, 'form': UploadUserDataForm})
 

@@ -24,14 +24,14 @@ urlpatterns = [
     #path('reviewer/status_change/<int:id>', views.status_change, name='status_change'),
     path('reviewer/view_description/', views.view_description, name='view_description'),
     
-    path('', views.base, name='base'),
-    path('about/', views.about, name='about'),
-    path('committee/', views.committee, name='committee'),
-    path('schedule/', views.schedule, name='schedule'),
-    path('contact/', views.contact, name='contact'),
+    path('', views.base, name='base'),#
+    path('about/', views.about, name='about'),#
+    path('committee/', views.committee, name='committee'),#
+    path('schedule/', views.schedule, name='schedule'),#
+    path('contact/', views.contact, name='contact'),#
     
-    path('sign/', views.sign, name='sign'),
-    path('login/', views.log, name='login'),
+    path('sign/', views.sign, name='sign'),#
+    path('login/', views.log, name='login'),#
 
     path("password_reset/", auth_views.PasswordResetView.as_view(template_name="base/password_reset_form.html"),name="password_reset"),
     path("password_reset/done/", auth_views.PasswordResetDoneView.as_view(template_name="base/password_reset_done.html"), name="password_reset_done"),
@@ -40,15 +40,15 @@ urlpatterns = [
 
 
 
-    path('logout/', views.logout, name='logout'),
+    path('logout/', views.logout, name='logout'), #
 
-    path('home/', views.home, name='home'),  
-    path('edit_profile/', views.edit_profile, name='edit_profile'),
-    path('user_profile/', views.user_profile, name='user_profile'),
-    path('change_password/', views.change_password, name='change_password'),   
+    path('home/', views.home, name='home'),  #
+    path('edit_profile/', views.edit_profile, name='edit_profile'),#
+    path('user_profile/', views.user_profile, name='user_profile'),#
+    path('change_password/', views.change_password, name='change_password'),   #
     
-    path('deactivate_account/', views.deactivate_account, name='deactivate_account'),   
-    path('deactivate_account/<int:id>', views.deactivate_account, name='deactivate_account'),   
+    path('deactivate_account/', views.deactivate_account, name='deactivate_account'),  # 
+    path('deactivate_account/<int:id>', views.deactivate_account, name='deactivate_account'),   #
         
     path('upload/', views.upload, name='upload'),
     
