@@ -912,9 +912,9 @@ def deactivate_account(request,id):
                 k.delete()
             os.remove(str(j.file.path))
             j.delete()
-    user.delete()
     user_role.delete()
     user_data.delete()
+    user.delete()
 
     if request.user.is_superuser:
         return redirect('admin_home')
@@ -1061,10 +1061,13 @@ def sign(request):
         #if "register" in request.POST:  # Registration
         
         if User.objects.filter(email=email).exists():
-            messages.error(request, "An account with this email already exists.", status=405)
+            messages.error(request, "An account with this email already exists.")
+            return render(request, "base/sign.html", status=400)
         elif User.objects.filter(username=username).exists():
-            messages.error(request, "This username is already taken.", status=405)
-        else:
+            print('Here')
+            messages.error(request, "This username is already taken.")
+            return render(request, "base/sign.html", status=400)
+        else:            
             user = User.objects.create_user(username=username, email=email, password=password)
             user.save()
             messages.success(request, "Registration successful!")
@@ -1076,7 +1079,7 @@ def sign(request):
             user_role.save()
 
             login(request, user)
-            return redirect('home', status=201)
+            return redirect('home')
                 
     return render(request, "base/sign.html", status=405)
 
@@ -1104,9 +1107,10 @@ def log(request):
             messages.success(request, "Successfully logged in!")
             return redirect('home')
         else:
-            messages.error(request, "Invalid email or password!")
+            messages.error(request, "Invalid email or password!")            
+            return render(request, "base/login.html", status=400)
                 
-    return render(request, "base/login.html")
+    return render(request, "base/login.html", status=405)
 
 
 def logout(request):
