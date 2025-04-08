@@ -931,7 +931,11 @@ def upload(request):
             return render(request, "base/upload.html", {'user_data': user_data})
     
         if request.method == "POST":
-            works = Work.objects.create(
+            if Work.objects.filter(title=request.POST['title']).exists():
+                messages.error(request, "Error: There is a work with this title")
+                return render(request, "base/home.html", status=400)
+
+            Work.objects.create(
                     category=request.POST['category'],
                     title=request.POST['title'],
                     authors=request.POST['authors'],
@@ -947,11 +951,10 @@ def upload(request):
         if form.is_valid():
             print("Valid")
             form.save()'''
-            
-            
 
     except IntegrityError:
             messages.error(request, "Error: There is a work with this title")
+            return render(request, "base/home.html", status=400)
     '''except Exception as e:
         messages.error(request, "Error: ",repr(e))'''
         
@@ -968,33 +971,35 @@ def update(request, id):
     try:
         edit_element = Work.objects.get(id=id)
         works=Work.objects.all().filter(user=request.user)
-        obj = Work.objects.get(id=id)
         print("hee")
 
         if "updaterecord" in request.POST:
+            print('Qwertyuiop')
             # Забороняємо користувачу редагувати, якщо робота вже на перевірці
-            if obj.status=='review':
+            if edit_element.status=='review':
                 return redirect('home')
 
             file = request.FILES.get('file', edit_element.file)
-            print(file)
+            print('n C ',request.POST.get('category'))
             category = request.POST.get('category', edit_element.category)
             title = request.POST.get('title', edit_element.title)
             authors = request.POST.get('authors', edit_element.authors)
         
-            obj.category = category
-            obj.file = file
-            obj.title = title
-            obj.authors = authors
-            obj.email_status='unsubmitted'
-            obj.save()
-            messages.success(request, 'Update '+ obj.title)
+            edit_element.category = category
+            edit_element.file = file
+            edit_element.title = title
+            edit_element.authors = authors
+            edit_element.email_status='unsubmitted'
+            edit_element.save()
+            print('cat ',edit_element.category)
+            messages.success(request, 'Update '+ edit_element.title)
 
             #return redirect('upload')
             return redirect('home')
         
     except Exception as e:
         messages.error(request, "Error: ",repr(e))
+        return render(request, 'base/home.html', {'edit_element': edit_element, 'works': works}, status=400)
 
     #return render(request, 'base/upload.html', {'edit_element': edit_element, 'works': works})
     return render(request, 'base/home.html', {'edit_element': edit_element, 'works': works})

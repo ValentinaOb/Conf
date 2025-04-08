@@ -7,22 +7,22 @@ from django.conf import settings
 
 
 urlpatterns = [
-    path('admin/home', views.admin_home, name='admin_home'),
-    path('admin/to_review', views.to_review, name='to_review'),
-    path('admin/to_review/<int:id>', views.to_review, name='to_review'),
+    path('admin/home', views.admin_home, name='admin_home'),    #
+    path('admin/to_review', views.to_review, name='to_review'), #
+    path('admin/to_review/<int:id>', views.to_review, name='to_review'),    #
     
-    path('admin/email_send/', views.email_send, name='email_send'),
-    path('admin/assign_role/', views.assign_role, name='assign_role'),
+    path('admin/email_send/', views.email_send, name='email_send'), #
+    path('admin/assign_role/', views.assign_role, name='assign_role'),  #
 
     path('admin/', admin.site.urls),
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 
-    path('reviewer/home', views.reviewer_home, name='reviewer_home'),
-    path('reviewer/review_status', views.review_status, name='review_status'),
-    path('reviewer/review_status/<int:id>', views.review_status, name='review_status'),
+    path('reviewer/home', views.reviewer_home, name='reviewer_home'), #
+    path('reviewer/review_status', views.review_status, name='review_status'),#
+    path('reviewer/review_status/<int:id>', views.review_status, name='review_status'),#
     path('reviewer/review_file/<int:id>', views.review_file, name='review_file'),    
     #path('reviewer/status_change/<int:id>', views.status_change, name='status_change'),
-    path('reviewer/view_description/', views.view_description, name='view_description'),
+    path('reviewer/view_description/', views.view_description, name='view_description'),#
     
     path('', views.base, name='base'),#
     path('about/', views.about, name='about'),#
@@ -50,14 +50,14 @@ urlpatterns = [
     path('deactivate_account/', views.deactivate_account, name='deactivate_account'),  # 
     path('deactivate_account/<int:id>', views.deactivate_account, name='deactivate_account'),   #
         
-    path('upload/', views.upload, name='upload'),
+    path('upload/', views.upload, name='upload'),   #
     
-    path('update/', views.update, name='update'),
-    path('update/<int:id>', views.update, name='update'),
-    path('update/updaterecord/<int:id>', views.update, name='update'),
+    path('update/', views.update, name='update'),   #
+    path('update/<int:id>', views.update, name='update'), #
+    path('update/updaterecord/<int:id>', views.update, name='update'), #
 
-    path('delete/', views.delete, name='delete'),
-    path('delete/<int:id>', views.delete, name='delete'), 
+    path('delete/', views.delete, name='delete'),   #
+    path('delete/<int:id>', views.delete, name='delete'),   #
     
 ]
 
