@@ -630,14 +630,15 @@ class TestReviewer(TestCase):
 
     def test_reviewer_home(self):
         self.client.login(username='rev_testuser', password='testpassword123')
-        response = self.client.get('reviewer/home/')
-        self.assertEqual(response.status_code, 302)
+        response = self.client.get('/reviewer/home')
+        self.assertEqual(response.status_code, 200)
         
     def test_valid_review_status(self):
         self.client.login(username='testuser', password='testpassword123')
         response = self.client.post(f'/reviewer/review_status/{self.work1.id}',{
             'work_status': 'accept',
-            'feedback':'Good work'
+            'feedback':'Good work',
+            'title':self.work1.title
         })        
         self.assertEqual(response.status_code, 302)
         self.rev_work1.refresh_from_db()

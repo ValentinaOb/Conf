@@ -408,6 +408,7 @@ def email_send(request):
         users_names=[]
         for user_work in users_works:
             works= Work.objects.filter(id = user_work['id'])
+            print(user_work['id'],users_works)
             current_work=Review_Work.objects.values('description').filter(work_id=user_work['id'])
             users_names.append(user_work['user__username']+'. ')
             print('h ',current_work, type(current_work))
@@ -434,8 +435,8 @@ def email_send(request):
 
             send_mail(subject, message, 'your_email@gmail.com', [recipient_email])
 
-            messages.info(request, f"Selected work have been marked as {new_status} and {users_names} have been notified")
-            return redirect('admin_home')
+        messages.info(request, f"Selected work have been marked as {new_status} and {users_names} have been notified")
+        return redirect('admin_home')
     
     elif 'description'in request.POST:
         selected_works = request.POST.getlist('selected_works')
