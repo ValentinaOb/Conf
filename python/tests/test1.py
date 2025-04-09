@@ -23,7 +23,7 @@ from base.models import Work, User_Data,User_Role,Review_Work
 #response = '/sign/'(request)
 from django.core import mail
 from django.test import override_settings
-
+import time
 class TestUserRegistration(unittest.TestCase): 
     @classmethod
     def setUpClass(cls):
@@ -42,12 +42,16 @@ class TestUserRegistration(unittest.TestCase):
         self.assertTrue(login_success, "User failed to login during setUp")               
 
     def test_successful_registration(self):
+        start_time = time.time()
         response = self.client.post('/sign/', {
             'username': 'testuser1',
             'email': 'test@mail.com',
             'password': 'test1234'
         })
         self.assertEqual(response.status_code, 302)  # Редірект на home
+        end_time = time.time()
+        duration = end_time - start_time
+        print(f"Reg/Response time: {duration:.4f} seconds")
 
     def test_already_taken_email_registration(self):
         response = self.client.post('/sign/', {
@@ -249,10 +253,14 @@ class TestUserUpload_Profile(TestCase):
         self.assertEqual(response.status_code, 302)
          
     def test_password_reset_request(self):
+        start_time = time.time()
         response = self.client.post(reverse('password_reset'), {'email': 'oldemail@example.com'})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn('Password reset', mail.outbox[0].subject)
+        end_time = time.time()
+        duration = end_time - start_time
+        print(f"E/Response time: {duration:.4f} seconds")
 
     def test_change_password(self):
         response = self.client.post(reverse('change_password'), {
@@ -303,6 +311,7 @@ class TestUserUpload_Profile(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_valid_file_update(self):
+        start_time = time.time()
         response = self.client.post(f'/update/{self.work.id}', {
             'updaterecord': '1',
             'category': 'mathematics',
@@ -316,7 +325,10 @@ class TestUserUpload_Profile(TestCase):
         self.work.refresh_from_db()
         self.assertEqual({self.work.category,self.work.title,self.work.authors,self.work.file_size},
                          {'mathematics','newtitle','testauthor, author',self.file.size})
-    
+        end_time = time.time()
+        duration = end_time - start_time
+        print(f"Upl/Response time: {duration:.4f} seconds")
+
     def test_valid_file_delete(self):
         response = self.client.post(f'/delete/{self.work.id}')
         self.assertEqual(response.status_code, 302)
@@ -634,6 +646,7 @@ class TestReviewer(TestCase):
         self.assertEqual(response.status_code, 200)
         
     def test_valid_review_status(self):
+        start_time = time.time()
         self.client.login(username='testuser', password='testpassword123')
         response = self.client.post(f'/reviewer/review_status/{self.work1.id}',{
             'work_status': 'accept',
@@ -643,6 +656,9 @@ class TestReviewer(TestCase):
         self.assertEqual(response.status_code, 302)
         self.rev_work1.refresh_from_db()
         self.assertEqual({self.rev_work1.status,self.rev_work1.description}, {'accept','Good work'})
+        end_time = time.time()
+        duration = end_time - start_time
+        print(f"St/Response time: {duration:.4f} seconds")
         
     def test_valid_description_one(self):
         self.client.login(username='testuser', password='testpassword123')
