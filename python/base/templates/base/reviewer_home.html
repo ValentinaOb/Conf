@@ -29,7 +29,10 @@
     <link rel="stylesheet" href="{% static 'css/slicknav.min.css' %}" type="text/css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}" type="text/css">
 
-    <link rel="stylesheet" href="{% static 'css/home.css' %}" type="text/css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/home.css' %}?v=1" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/upload.css' %}?v=1" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/admin_home.css' %}?v=1" />
+    
 </head>
 
 <body style="background-color: #121212;">
@@ -75,8 +78,8 @@
                         {%endif%}
                         <ul>
                             <li><i class="fa fa-edit"></i> <a href="{% url 'edit_profile' %}">Edit Profile</a></li>
-                            <li><i class="fa fa-envelope"></i> <a href="#">Notification</a></li>
-                            <!--<li><i class="fa fa-cog"></i> <a href="#">Settings</a></li>
+                            <!--<li><i class="fa fa-envelope"></i> <a href="#">Notification</a></li>
+                            <li><i class="fa fa-cog"></i> <a href="#">Settings</a></li>
                             <li><i class="fa fa-question-circle"></i> <a href="#">Help</a></li>-->
                             <li><i class="fa fa-sign-out-alt"></i> <a href="{% url 'logout' %}">Logout</a></li>
                         </ul>
@@ -118,14 +121,17 @@
     </div>
     
     <!-- Message End -->
-    <br>
+    
+    <h2 class="text-center table-title">Works Management</h2>
     <form id="bookForm" method="POST" action="{% url 'view_description' %}">
+    {%if reviewer_tasks%}
         {% csrf_token %}
-        <div class="input-data">
-            <button type="submit" style="width: 200px; height: 50px; margin-left: 50px;">Description</button>
-          </div>
-        <br><br><br>
-    <table id="outputTable" style="color: #F5F5F5;text-align: center;">
+        <div class="container">
+            <div class="row justify-content-md-end">
+            <button class="col-5 rounded btn btn-secondary" id="btn-description" style="margin-bottom: 1%;" type="submit" name="description">Description</button>
+          </div></div>
+    {% endif %}
+    <table id="outputTable">
         <tr>
             <th></th>
             <th>Category</th>
@@ -157,7 +163,12 @@
         {% for reviewer_task in reviewer_tasks %}  
         <tr>
             <td>
-                <input type="checkbox" name="selected_works" class="bookCheckbox" value="{{ reviewer_task.id }}">
+                <div class="checkbox-wrapper-18">
+                    <div class="round">
+                        <input type="checkbox" name="selected_works" id="checkbox-18-{{ reviewer_task.id }}" value="{{ reviewer_task.id }}">
+                        <label for="checkbox-18-{{ reviewer_task.id }}"></label>
+                    </div>
+                </div>
             </td>
             <td>{{reviewer_task.category}}</td>
             <td>{{reviewer_task.title}}</td>
@@ -170,7 +181,7 @@
 
 
             <!--<td><a href='/update/{{work.id}}'>Update</a></td>-->
-            <td><button onclick="window.open('/reviewer/review_file/{{reviewer_task.id}}', '_blank')">Review</button></td>
+            <td><button onclick="window.open('/reviewer/review_file/{{reviewer_task.id}}', '_blank')" class="rounded btn btn-primary" id="btn-rev">Review</button></td>
             
             <td><a href='/reviewer/review_status/{{reviewer_task.id}}'>Status</a></td>
             

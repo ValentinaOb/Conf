@@ -6,20 +6,15 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseRedirect, StreamingHttpResponse
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 from .models import Work, UploadWorkForm, User_Data, UploadUserDataForm, Review_Work, User_Role, Review_Work
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import update_session_auth_hash
 import os
 from django.contrib import auth
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.admin.views.decorators import staff_member_required
 from collections import namedtuple
-from itertools import chain
 from collections import defaultdict
 from django.core.mail import send_mail
-from datetime import datetime
 
 works_rev = namedtuple('Three', ['category', 'title', 'authors','file','file_size','uploaded_at','status', 'users','send_at','work_id'])
 
@@ -29,8 +24,6 @@ def admin_home(request):
     #usernames of reviewers
     reviewers_id = User_Role.objects.filter(user_role='reviewer')  
     user_ids = reviewers_id.values_list('user_id', flat=True)  
-    reviewers = User.objects.filter(id__in=user_ids)  
-
 
     '''rev_works_id = Review_Work.objects.all()
     rev_works_ids = rev_works_id.values_list('user_id', flat=True)  
@@ -170,6 +163,7 @@ def admin_home(request):
     # Формуємо список об'єктів для шаблону
     works_rev_join = []
     available_status=[]
+    available_role=[]
     available_email_status=[]
     for i in work:
         works_rev_join.append({
@@ -215,9 +209,15 @@ def admin_home(request):
 
 
     #user role
-    users_roles= User_Data.objects.values('user_id','firstname','lastname','job','user__user_role__user_role','user__username')
+    users_roles= User_Data.objects.values('user_id','firstname','lastname','user__email','user__user_role__user_role','user__username')
     if user_role:
         users_roles = [item for item in users_roles if item["user__user_role__user_role"] == user_role]
+
+    user_data= User_Data.objects.filter(user=request.user)
+
+
+    user_role_dict = [item["user__user_role__user_role"] for item in users_roles]
+    available_role=set(user_role_dict)
 
     '''work_status = request.GET.get('filter')
     if work_status:
@@ -234,36 +234,34 @@ def admin_home(request):
     works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
                             obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]'''
     
-    return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'works_authors': works_authors,
+    return render(request, 'base/adm-upload.html', {'reviewers': reviewers_data,'works_rev_join': works_rev_join,'works_authors': works_authors,
                                                     'available_status':available_status,"work_status": work_status,"selected_order": sort_order, 
-                                                    'available_email_status':available_email_status,'selected_email_status':selected_email_status,
-                                                    'users_roles':users_roles})
+                                                    'available_email_status':available_email_status,'selected_email_status':selected_email_status,'available_role':available_role,
+                                                    'users_roles':users_roles,'user_data':user_data})
 
-def to_review(request, id):
-    edit_element = Work.objects.get(id=id)
-    works=Work.objects.all()
-    
-    if request.method == "POST":
-        works=Work.objects.get(title=request.POST['title'])
-        #reviewers=User.objects.get(username=request.POST.getlist('reviewer'))
-
-        '''Review_Work.objects.create(
-            work=works,
-            user=reviewer
-        )'''
-        #review_work.user=reviewer
-        rev_names=request.POST.getlist('reviewer')
-        print('re ',rev_names)
+def to_review(request):
+    selected_works = request.POST.getlist('selected_works')
+    if not selected_works:
+        return redirect('admin_home')
+    users_works=Work.objects.filter(id__in=selected_works)
         
+    title_list=[]
+    rev_names=request.POST.getlist('reviewer')
+    for user_work in users_works:
+        rev_works=Review_Work.objects.filter(work_id=user_work.id)
+        if rev_works:
+            for rev_work in rev_works:
+                rev_work.delete()
         for i in rev_names:
-            print(i)
             reviewer =User.objects.get(id=i)
+            
             Review_Work.objects.create(
-                work=works,
+                work=user_work,
                 user=reviewer
             )
-            
-        '''rev_ids=[]
+        title_list.append(user_work.title)
+    title=', '.join(title_list)       
+    '''rev_ids=[]
         rev_objs=[]
         for i in rev_names:
             rev_objs.append(User.objects.get(username=i))
@@ -271,107 +269,10 @@ def to_review(request, id):
             rev_ids.append(i.id)
         review_work.users=(rev_ids)
         review_work.save()'''
-
-        messages.success(request, works.title +' - Successfully submitted for review')
-        #messages.success(request, works.title +' - '+ str(rev_names))
-        return redirect('admin_home')
     
-    '''works=Work.objects.all()
-    reviewers_id = User_Role.objects.filter(user_role='reviewer')  
-    user_ids = reviewers_id.values_list('user_id', flat=True)  
-    reviewers = User.objects.filter(id__in=user_ids)  
-    rev_works_id = Review_Work.objects
-    rev_works_ids = rev_works_id.values_list('user_id', flat=True)  
-    rev_works = User.objects.filter(id__in=rev_works_ids) '''
-    print('E: ',edit_element.title)
-
-    #return redirect('admin_home')
-    reviewers_id = User_Role.objects.filter(user_role='reviewer')  
-    user_ids = reviewers_id.values_list('user_id', flat=True)  
-    reviewers = User_Data.objects.filter(user_id__in=user_ids) 
-    print('L: ',user_ids, '\nJ ',reviewers)
-
-    '''rev_works_id = Review_Work.objects.all()
-    rev_works_ids = rev_works_id.values_list('users', flat=True)  
-    rev_works = User.objects.filter(id__in=rev_works_ids) 
-    print(rev_works_ids)
-    print('D: ',rev_works)'''
-    '''queryset = Review_Work.objects.select_related('work').all()
-    
-    works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]
-    '''
-
-    
-    #       Previous Version !!!
-    '''queryset=Review_Work.objects.select_related('user').prefetch_related(
-    'user__work_set',  
-    'user__user_data_set').all()
-    works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id,obj.user_data.lastname) for obj in queryset]'''
-    
-    work = Work.objects.select_related('user')  # Отримуємо всі `Two` з `One`
-    user_data = User_Data.objects.all()
-    review_work = Review_Work.objects.all()
-
-    # Створюємо словник для швидкого доступу до three і four за one_id
-    user_data_dict = {i.user_id: i.lastname for i in user_data}
-    review_work_dict = {i.user_id: i.send_at for i in review_work}
-
-    # Формуємо список об'єктів для шаблону
-    works_rev_join = []
-    available_status=[]
-    for i in work:
-        works_rev_join.append({
-            'id':i.id,
-            'category': i.category, 
-            'title': i.title,
-            'authors': i.authors,
-            'file': i.file,
-            'file_size': i.file_size,
-            'uploaded_at': i.uploaded_at,
-            'status':i.status,
-            'user':i.user,
-            'email_status':i.email_status,
-
-            'lastname': user_data_dict.get(i.user_id, ""),
-            'send_at': review_work_dict.get(i.user_id, ""),
-        })
-        available_status.append(i.status)
-        available_email_status.append(i.email_status)
-    available_status=set(available_status)
-    available_email_status=set(available_email_status)
-    
-
-    # Отримуємо тип, за яким фільтруємо
-    work_status = request.GET.get("filter", "")
-    selected_email_status = request.GET.get("email_status", "")
-    user_role = request.GET.get("role_filter", "")
-
-    # Визначаємо, чи сортуємо за зростанням чи спаданням
-    sort_order = request.GET.get("order", "asc")  # За замовчуванням - зростання
-    reverse = sort_order == "desc"
-
-    if selected_email_status:
-        works_rev_join = [item for item in works_rev_join if item["email_status"] == selected_email_status]
-
-    # Фільтрація за типом
-    if work_status:
-        works_rev_join = [item for item in works_rev_join if item["status"] == work_status]
-
-    # Сортування за датою
-    works_rev_join.sort(key=lambda x: x["uploaded_at"], reverse=reverse)
-
-
-    users_roles= User_Data.objects.values('user_id','firstname','lastname','job','user__user_role__user_role','user__username')
-    if user_role:
-        users_roles = [item for item in users_roles if item["user__user_role__user_role"] == user_role]
-        
-    return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'edit_element': edit_element,
-                                                    'available_status': available_status,"work_status": work_status,"selected_order": sort_order,
-                                                    'available_email_status':available_email_status,'selected_email_status':selected_email_status,
-                                                    'users_roles':users_roles})
-#
+    messages.success(request, title+' - Successfully submitted for review')
+    return redirect('admin_home')
+ 
 '''def status_change(request, id):
     edit_element = Work.objects.get(id=id)
     
@@ -396,7 +297,9 @@ def to_review(request, id):
     return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'edit_element': edit_element})
 '''
 def email_send(request):
-    if 'email' in request.POST:
+    if 'to_review'in request.POST:
+        to_review(request)
+    elif 'email' in request.POST:
         selected_works = request.POST.getlist('selected_works')
         new_status = request.POST.get('work_status')
 
@@ -499,7 +402,7 @@ def reviewer_home(request):
     work_id_for_review=[Review_Work.objects.values('work_id').filter(user_id=request.user.id)]  
     work=Work.objects.select_related('user').filter(id__in=work_id_for_review)
     reviewers_data = User_Data.objects.filter(user_id=request.user.id)  
-    review_work = Review_Work.objects.filter(user_id=request.user.id)  
+    review_work = Review_Work.objects.filter(user_id=request.user.id) 
 
     user_data_dict = {i.user_id: i.lastname for i in reviewers_data}
     review_work_dict = {i.work_id: i.send_at for i in review_work}    
@@ -531,7 +434,6 @@ def reviewer_home(request):
             'lastname': works_authors.get(i.id, []),
             'status': review_work_status_dict.get(i.id, ""),
         })
-        
         available_status.append(review_work_status_dict.get(i.id, ""))# Отримуємо унікальні типи для фільтра
     available_status=set(available_status)
     
@@ -600,8 +502,10 @@ def reviewer_home(request):
     
     print(reviewer_tasks.values_list('send_at', flat=True)) '''
     
+    user_data= User_Data.objects.filter(user_id=request.user.id).values('firstname','lastname','job')
+
     return render(request, 'base/reviewer_home.html', {'reviewer_tasks':reviewer_tasks,'available_status':available_status,
-                                                    "work_status": work_status,"selected_order": sort_order})
+                                                    "work_status": work_status,"selected_order": sort_order,'user_data':user_data})
 
 def work_status_check(id):
     status_check=Review_Work.objects.values('status').order_by('user_id').filter(work_id=id)
@@ -972,6 +876,7 @@ def update(request, id):
     try:
         edit_element = Work.objects.get(id=id)
         works=Work.objects.all().filter(user=request.user)
+        user_data=User_Data.objects.get(user=request.user)
         print("hee")
 
         if "updaterecord" in request.POST:
@@ -1003,7 +908,7 @@ def update(request, id):
         return render(request, 'base/home.html', {'edit_element': edit_element, 'works': works}, status=400)
 
     #return render(request, 'base/upload.html', {'edit_element': edit_element, 'works': works})
-    return render(request, 'base/home.html', {'edit_element': edit_element, 'works': works})
+    return render(request, 'base/home.html', {'edit_element': edit_element, 'works': works,'user_data':user_data})
     #return redirect('home')
 
 def delete(request, id):

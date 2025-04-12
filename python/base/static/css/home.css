@@ -25,6 +25,9 @@ table {
     border-radius: 8px;
     overflow: hidden;
     margin-bottom: 35px;
+
+    color: #F5F5F5;
+    text-align: center;
 }
 
 th, td {
@@ -48,6 +51,7 @@ td a{text-align:center;}
 
 
 /* Actions Column Styling */
+/*
 td.actions {
     text-align: center;
     display: flex;
@@ -81,7 +85,7 @@ td.actions {
 .btn-delete:hover {
     background: #d32f2f;
 }
-
+*/
 /* Form Styling */
   .form_container {
     width: 500px;
@@ -201,7 +205,7 @@ td.actions {
     cursor: pointer;
     color: #fff;
     background: linear-gradient(90deg, #FFD734, #F05457);
-    transition: all 0.4s;
+    transition: all 0.3s;
   }
   
   .submit-btn button:hover {
@@ -243,6 +247,7 @@ td.actions {
     .menu h2, .menu h3 {
         text-align: center;
         margin: 10px 0;
+        color: #F05457;
     }
 
     .menu h3 span {
@@ -276,3 +281,4 @@ td.actions {
         color: black;
         flex: 1;
     }
+    

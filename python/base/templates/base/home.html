@@ -29,7 +29,8 @@
     <link rel="stylesheet" href="{% static 'css/slicknav.min.css' %}" type="text/css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}" type="text/css">
 
-    <link rel="stylesheet" href="{% static 'css/home.css' %}" type="text/css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/home.css' %}?v=1" />
+    
 </head>
 
 <body>
@@ -75,8 +76,8 @@
                         {%endif%}
                         <ul>
                             <li><i class="fa fa-edit"></i> <a href="{% url 'edit_profile' %}">Edit Profile</a></li>
-                            <li><i class="fa fa-envelope"></i> <a href="#">Notification</a></li>
-                            <!--<li><i class="fa fa-cog"></i> <a href="#">Settings</a></li>
+                            <!--<li><i class="fa fa-envelope"></i> <a href="#">Notification</a></li>
+                            <li><i class="fa fa-cog"></i> <a href="#">Settings</a></li>
                             <li><i class="fa fa-question-circle"></i> <a href="#">Help</a></li>-->
                             <li><i class="fa fa-sign-out-alt"></i> <a href="{% url 'logout' %}">Logout</a></li>
                         </ul>
@@ -89,14 +90,14 @@
 
     </header>
 
-<div class="home-next-step">
+<!--<div class="home-next-step">
     <h1>Next steps {{user_data.firstname}}</h1>
     <ul>
         <li>By 12 June, submit a .doc/.pdf file to the appropriate section <br><span>It may take 3 business days to review the file</span></li>
         <li>Wait for confirmation of participation, make corrections to the file if necessary</li>
     </ul>
 
-</div>
+</div>-->
     <!-- Header End -->
 
     <!-- Message Section Begin -->
@@ -195,5 +196,4 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 {% endblock content %}
 </body>
 <script src="{% static 'js/home.js' %}"></script>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </html>

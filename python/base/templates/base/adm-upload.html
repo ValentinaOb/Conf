@@ -29,7 +29,9 @@
     <link rel="stylesheet" href="{% static 'css/slicknav.min.css' %}" type="text/css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}" type="text/css">
 
-    <link rel="stylesheet" href="{% static 'css/home.css' %}" type="text/css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/home.css' %}?v=1" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/upload.css' %}?v=1" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/admin_home.css' %}?v=1" />
 </head>
 
 <body style="background-color: #121212;">
@@ -75,8 +77,8 @@
                         {%endif%}
                         <ul>
                             <li><i class="fa fa-edit"></i> <a href="{% url 'edit_profile' %}">Edit Profile</a></li>
-                            <li><i class="fa fa-envelope"></i> <a href="#">Notification</a></li>
-                            <!--<li><i class="fa fa-cog"></i> <a href="#">Settings</a></li>
+                            <!--<li><i class="fa fa-envelope"></i> <a href="#">Notification</a></li>
+                            <li><i class="fa fa-cog"></i> <a href="#">Settings</a></li>
                             <li><i class="fa fa-question-circle"></i> <a href="#">Help</a></li>-->
                             <li><i class="fa fa-sign-out-alt"></i> <a href="{% url 'logout' %}">Logout</a></li>
                         </ul>
@@ -118,22 +120,22 @@
     </div>
     
     <!-- Message End -->
-    <br>
-    <form id="workForm" method="POST" action="{% url 'email_send' %}">
+    <h2 class="text-center table-title">Works Management</h2>
+    <form id="work-form" method="POST" action="{% url 'email_send' %}">
         {% csrf_token %}
-        <div class="input-data">
-            <label for="work_status">Status</label>
-            <select id="work_status" name="work_status" style="width: 350px;" required>
+        <div class="container">
+            <div class="row justify-content-md-center">
+            <label class="col text-end fs-4 fw-light" for="work_status">Status</label>
+            <select class="col-6" id="work_status" name="work_status" style="width: 350px;" required>
                 <option value="accept">Accept</option>
                 <option value="refuse">Refuse</option>                
                 <option value="finalise">Finalise</option>
             </select>
-            <button type="submit" style="width: 250px; height: 50px; margin-left: 50px;" name="email">Send</button>
-            <button type="submit" style="width: 200px; height: 50px; margin-left: 50px;" name="description">Description</button>
-          </div>
-        <br>
+            <button class="col rounded" id="btn-main" type="submit" name="email">Send</button>
+            <button class="col-5 rounded btn btn-secondary" id="btn-description" type="submit" name="description">Description</button>
+          </div></div>
         
-    <table id="outputTable" style="color: #F5F5F5;text-align: center;">
+    <table id="outputTable" >
         <tr>
             <th></th>
             <th>Category</th>
@@ -142,30 +144,27 @@
             <th>File</th>
             <th>File Size</th>
             <th>Uploaded At
-                <a href="?filter={{ work_status }}&email_status={{ selected_email_status }}&order=asc" 
-                   style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">
+                <a href="?filter={{ work_status }}&email_status={{ selected_email_status }}&order=asc" id="filters">
                     ↑
                 </a>
-                <a href="?filter={{ work_status }}&email_status={{ selected_email_status }}&order=desc" 
-                   style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">
+                <a href="?filter={{ work_status }}&email_status={{ selected_email_status }}&order=desc" id="filters">
                     ↓
                 </a>
                 <!--<a href="?sort=date&filter={{ work_status }}" style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">↑↓</a>
                 --></th>
             <th>Status 
                 {% for t in available_status %}
-                    <a href="?filter={{ t }}&email_status={{ selected_email_status }}&order={{ selected_order }}" style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">{{ t }}</a>
+                    <a href="?filter={{ t }}&email_status={{ selected_email_status }}&order={{ selected_order }}" id="filters">{{ t }}</a>
                 {% endfor %}
             </th>
             <th>Reviewers</th>
             <th>Email
                 {% for t in available_email_status %}
-                    <a href="?email_status={{ t }}&filter={{ work_status }}&order={{ selected_order }}" style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">{{ t }}</a>
+                    <a href="?email_status={{ t }}&filter={{ work_status }}&order={{ selected_order }}" id="filters">{{ t }}</a>
                 {% endfor %}
             </th>
             <th colspan="3">Action 
-                <a href="?" 
-                   style="margin-left: 5px; padding: 2px 5px; color: white; border-radius: 3px; text-decoration: none;">
+                <a href="?" id="filters">
                     ✖
                 </a>
             </th>
@@ -174,7 +173,13 @@
         {% for work_rev in works_rev_join %}  
         <tr>
             <td>
-                <input type="checkbox" name="selected_works" class="workCheckbox" value="{{ work_rev.id }}">
+                <div class="checkbox-wrapper-18">
+                    <div class="round">
+                         <input type="checkbox" name="selected_works" id="checkbox-18-work-{{ work_rev.id }}" value="{{ work_rev.id }}">
+                        <label for="checkbox-18-work-{{ work_rev.id }}"></label>
+                    </div>
+                </div>
+                <!--<input type="checkbox" name="selected_works" class="workCheckbox" value="{{ work_rev.id }}">-->
             </td>
             <td>{{work_rev.category}}</td>
             <td>{{work_rev.title}}</td>
@@ -182,7 +187,7 @@
             <td>{{work_rev.file}}</td>
             <td>{{work_rev.file_size|filesizeformat}}</td>
             <td>{{work_rev.uploaded_at}}</td>
-            <td>{{work_rev.status}}</td>
+            <td class="text-center">{{work_rev.status}}</td>
             
             <td>
                 {% for author in work_rev.lastname %}
@@ -192,7 +197,7 @@
                 {% endfor %}
             </td>
             
-            <td>{{work_rev.email_status}}</td>
+            <td class="text-center">{{work_rev.email_status}}</td>
             <!--    <BR>
             <td>
                 {% for author in work_rev.lastname %}
@@ -229,34 +234,19 @@
         {%endif%}
         
     </table>
-    </form>
-    
-    {% if edit_element %}
-    <div class="form_container">
-        <div class="text">Organization</div>
-        <form action="/admin/to_review/{{edit_element.id}}" method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-          <div class="input-data">
-            <label for="title">Title</label>
-            <input type="text" id="title" name="title" value="{{edit_element.title}}" readonly>
-          </div>
-      
-          <div class="input-data">
-            <label for="reviewer">Reviewer</label>
-            <select id="reviewer" name="reviewer" size="3" multiple required>
-                {% for reviewer in reviewers %}
-                <option value="{{reviewer.user_id}}">{{reviewer.lastname}}</option>
-                {%endfor%}
-            </select>
-          </div>
-          <br>
-          <div class="submit-btn">
-            <button type="submit" name="upload">Submit</button>
-          </div>
-        </form>
-      </div>
-    {% endif %}
 
+    <div class="container">
+        <div class="row justify-content-md-center align-middle">
+        <label class="col text-end fs-4 fw-light" for="work_status">Reviewer</label>
+        <select class="form-select form-select-sm col-3" id="reviewer-select" name="reviewer" size="3" multiple required>
+            {% for reviewer in reviewers %}
+            <option value="{{reviewer.user_id}}">{{reviewer.lastname}}</option>
+            {%endfor%}
+        </select>
+        <button class="col-5 rounded btn btn-secondary" id="btn-review" type="submit" name="to_review">To Review</button>
+      </div>
+    </div>
+    </form>
 
     {% for rev_work in rev_works %}    
             <td>{{rev_work.username}}</td>
@@ -266,7 +256,7 @@
 
 <!---->
    {% if users_works %}
-   <table id="outputTable" style="color: #F5F5F5;text-align: center;">
+   <table id="empty_table">
     <tr>
         <th>Title</th>
         <th>Status</th>
@@ -286,42 +276,49 @@
 
 
 <!--        User Role       -->
-<form id="userForm" method="POST" action="{% url 'assign_role' %}">
+<h2 class="text-center table-title">User Role</h2>
+<form id="user-form" method="POST" action="{% url 'assign_role' %}">
     {% csrf_token %}
-    <div class="input-data">
-        <label for="user_role">Role</label>
-        <select id="user_role" name="user_role" style="width: 350px;" required>
+    <div class="container">
+    <div class="row justify-content-md-center role-form">
+        <label class="col text-end fs-4 fw-light" for="user_role">Role</label>
+        <select class="col-6" id="user_role" name="user_role" style="width: 350px;" required>
             <option value="admin">Admin</option>
             <option value="reviewer">Reviewer</option>                
             <option selected="selected" value="user">User</option>
         </select>
-        <button type="submit" style="width: 250px; height: 50px; margin-left: 50px;">Apply</button>
-      </div>
-    <br>
-<table id="outputTable" style="color: #F5F5F5;text-align: center;">
+        
+        <button class="col rounded" type="submit" id="btn-main">Apply</button>
+      </div></div>
+<table id="role_table">
     <tr>
-        <th></th>
+        <th class="check_th"></th>
         <th>User</th>
         <th>Username</th>
-        <th>Job</th>
-        <th>Role 
-            <a href="?role_filter=admin" style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">Admin</a>
-            <a href="?role_filter=reviewer" style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">Reviewer</a>
-            <a href="?role_filter=user" style="margin-left: 5px; padding: 2px 5px; background: lightgray; border-radius: 3px; text-decoration: none;">User</a>
-            <a href="?" style="margin-left: 5px; padding: 2px 5px; color: white; border-radius: 3px; text-decoration: none;">✖</a>
+        <th>Email</th>
+        <th class="role_th">Role 
+            {% for t in available_role %}
+            <a href="?role_filter={{t}}" id="filters">{{t}}</a>
+            {% endfor %}
+            <a href="?" id="filters">✖</a>
         </th>
-        <th>Action</th>
+        <th class="action_th">Action</th>
     </tr>
 {% if users_roles %}
         {% for user_role in users_roles %}  
         <tr>
             <td>
-                <input type="checkbox" name="selected_users" class="workCheckbox" value="{{ user_role.user_id }}">
+                <div class="checkbox-wrapper-18">
+                    <div class="round">
+                         <input type="checkbox" name="selected_users" id="checkbox-18-{{ user_role.user_id }}" value="{{ user_role.user_id }}">
+                        <label for="checkbox-18-{{ user_role.user_id }}"></label>
+                    </div>
+                </div>
             </td>
             <td>{{user_role.user__username}}</td>
             <td>{{user_role.lastname}} {{user_role.firstname}}</td>
-            <td>{{user_role.job}}</td>
-            <td>{{user_role.user__user_role__user_role}}</td>
+            <td>{{user_role.user__email}}</td>
+            <td class="text-center">{{user_role.user__user_role__user_role}}</td>
             <td><a href="#" class="deactivate_confirmation btn btn-danger"
                 data-bs-toggle="modal" data-bs-target="#deactivateModal"
                 data-user-id="{{ user_role.user_id }}" data-user-username="{{ user_role.user__username }}" name="deactivate">Deactivate</a>

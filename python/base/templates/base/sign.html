@@ -8,75 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
 <title>PCSCE</title>
 
+<link rel="stylesheet" type="text/css" href="{% static 'css/sign.css' %}?v=1" />
 
-<link rel="stylesheet" href="{% static 'css/sign.css' %}" type="text/css">
-
-    <style>
-        body {
-            background: #f8f9fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .container {
-            max-width: 400px;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            background: #007bff;
-            color: white;
-            font-weight: bold;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button:hover {
-            background: #0056b3;
-        }
-
-        .toggle-btn {
-            background: none;
-            color: #007bff;
-            border: none;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-
-        .error-message {
-            color: red;
-            font-size: 12px;
-            display: none;
-        }
-
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1050;
-        }
-    </style>
 </head>
 <body>
 
@@ -86,7 +19,7 @@
             <div class="toast align-items-center text-white bg-{% if message.tags == 'error' %}danger{% else %}success{% endif %} border-0 fade show"
                 role="alert" aria-live="assertive" aria-atomic="true" id="toast-{{ forloop.counter }}">
                 <div class="d-flex">
-                    <div class="toast-body text-center w-100">
+                    <div class="toast-body text-center w-50">
                         {{ message }}
                     </div>
                 </div>
