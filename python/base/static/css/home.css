@@ -242,6 +242,7 @@ td.actions {
         border-radius: 5px;
         padding: 10px;
         display: none;
+        z-index: 9999;
     }
 
     .menu h2, .menu h3 {

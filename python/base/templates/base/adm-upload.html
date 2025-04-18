@@ -238,7 +238,7 @@
     <div class="container">
         <div class="row justify-content-md-center align-middle">
         <label class="col text-end fs-4 fw-light" for="work_status">Reviewer</label>
-        <select class="form-select form-select-sm col-3" id="reviewer-select" name="reviewer" size="3" multiple required>
+        <select class="form-select form-select-sm col-3" id="reviewer-select" name="reviewer" size="3" multiple>
             {% for reviewer in reviewers %}
             <option value="{{reviewer.user_id}}">{{reviewer.lastname}}</option>
             {%endfor%}

@@ -69,6 +69,10 @@ label{
     background-size: 15px;
   }
   
+  form textarea {
+    padding-bottom: 3%;
+  }
+
   .button-group {
     display: flex;
     align-items: center;

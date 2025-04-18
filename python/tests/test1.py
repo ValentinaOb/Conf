@@ -557,7 +557,7 @@ class TestReviewer(TestCase):
         self.email = 'oldemail@example.com'
         self.rev_email = 'test@mail.com'
         self.rev1_email = 'rev_test@mail.com'
-        User.objects.filter(email__in=[self.email,self.rev_email,self.rev_email]).delete()
+        User.objects.filter(email__in=[self.email,self.rev1_email,self.rev_email]).delete()
         
         self.rev_user = User.objects.create_user(
             username="rev_testuser",

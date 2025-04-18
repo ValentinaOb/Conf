@@ -205,36 +205,25 @@
     
     {% if review_element %}
     <div class="form_container">
-        <div class="text">Organization</div>
-        <form action="/reviewer/review_status/{{review_element.id}}" method="POST" enctype="multipart/form-data">
+        <div class="text">Review</div>
+        <form action="/reviewer/review_status/{{review_element.id}}"  method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-          <div class="input-data">
             <label for="title">Title</label>
-            <input type="text" id="title" name="title" value="{{review_element.title}}" readonly>
-          </div>
-      
-          <div class="input-data">
+            <input type="text" id="title" name="title" value="{{review_element.title}}" readonly>      
             <label for="work_status">Work Status</label>
             <select id="work_status" name="work_status" required>
                 <option value="accept">Accept</option>
                 <option value="refuse">Refuse</option>                
                 <option value="finalise">Finalise</option>
             </select>
-          </div>
-
-          <div class="input-data">
-          <label for="story">Feedback</label>
+            <label for="story">Feedback</label>
 
         <textarea id="feedback" name="feedback" rows="3" cols="50" onclick="document.getElementById('feedback').value = '' ">Write your review...</textarea>
-        </div>
-        <br>
-
-      
-          <div class="submit-btn">
+        
             <button type="submit" name="upload">Submit</button>
-          </div>
-        </form>
+          </form>
       </div>
+
     {% endif %}
 
 

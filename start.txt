@@ -53,3 +53,11 @@ Colors:
 - Peach #F05457
 - Dark Blue #13103B
 - Purple Blue #3700B3
+
+
+coverage run -m tests.test1    
+python -m unittest tests.test1.TestReviewer
+
+coverage report
+coverage html - генерується html звіт
+coverage run --source='myapp' manage.py test - для аналізу лише певну частину коду (наприклад, лише додаток myapp)

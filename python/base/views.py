@@ -20,259 +20,268 @@ works_rev = namedtuple('Three', ['category', 'title', 'authors','file','file_siz
 
 @staff_member_required
 def admin_home(request):
+    if request.user.is_superuser:
 
-    #usernames of reviewers
-    reviewers_id = User_Role.objects.filter(user_role='reviewer')  
-    user_ids = reviewers_id.values_list('user_id', flat=True)  
+        #usernames of reviewers
+        reviewers_id = User_Role.objects.filter(user_role='reviewer')  
+        user_ids = reviewers_id.values_list('user_id', flat=True)  
 
-    '''rev_works_id = Review_Work.objects.all()
-    rev_works_ids = rev_works_id.values_list('user_id', flat=True)  
-    
-    rev_works = User.objects.filter(id__in=rev_works_ids) '''
-    
-    #
-    #rev_works_id = Review_Work.objects.all()
-    '''rev_works_ids = rev_works_id.values_list('user_id', flat=True)  
-
-
-    #users_dict = {user.id: user for user in User.objects.filter(id__in=[x for x in rev_works_id if x is not None])}  
-    #rev_works = [users_dict.get(uid, None) for uid in rev_works_id]
-    rev_works = User.objects.filter(id__in=rev_works_ids).exclude(None)'''
-
-    '''rev_works_id = Review_Work.objects.values('send_at', 'users').annotate(
-    category=Value(None, output_field=TextField()), 
-    title=Value(None, output_field=CharField()), 
-    authors=Value(None, output_field=TextField()), 
-    file=Value(None, output_field=FileField()), 
-    file_size=Value(None, output_field=IntegerField()), 
-    uploaded_at=Value(None, output_field=DateTimeField()),
-    status=Value(None, output_field=CharField()),
-    source=Value('Review_Work', output_field=CharField()))
-
-    works = Work.objects.values('category', 'title', 'authors','file','file_size','uploaded_at','status').annotate(
-    send_at=Value(None, output_field=DateTimeField()), 
-    users=Value(None, output_field=TextField()),
-    source=Value('Work', output_field=CharField())  # Додаємо джерело
-    )
-    works_rev_union = works.union(rev_works_id)
-    print('R: ',works_rev_union)'''
-
-    #works_rev_join = Work.objects.select_related('review_work').values('category', 'title', 'authors','file','file_size','uploaded_at','status' 'review_work__users','review_work__send_at')
-    #works_rev_join = Review_Work.objects.select_related('work').all() 
+        '''rev_works_id = Review_Work.objects.all()
+        rev_works_ids = rev_works_id.values_list('user_id', flat=True)  
+        
+        rev_works = User.objects.filter(id__in=rev_works_ids) '''
+        
+        #
+        #rev_works_id = Review_Work.objects.all()
+        '''rev_works_ids = rev_works_id.values_list('user_id', flat=True)  
 
 
-    '''
-    queryset = Review_Work.objects.select_related('work').all()
-    
-    works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]'''
+        #users_dict = {user.id: user for user in User.objects.filter(id__in=[x for x in rev_works_id if x is not None])}  
+        #rev_works = [users_dict.get(uid, None) for uid in rev_works_id]
+        rev_works = User.objects.filter(id__in=rev_works_ids).exclude(None)'''
 
-    #
-    '''
-    rev_works_ids = list(rev_works_id.values_list('users', flat=True))  
-    processed_ids = []
+        '''rev_works_id = Review_Work.objects.values('send_at', 'users').annotate(
+        category=Value(None, output_field=TextField()), 
+        title=Value(None, output_field=CharField()), 
+        authors=Value(None, output_field=TextField()), 
+        file=Value(None, output_field=FileField()), 
+        file_size=Value(None, output_field=IntegerField()), 
+        uploaded_at=Value(None, output_field=DateTimeField()),
+        status=Value(None, output_field=CharField()),
+        source=Value('Review_Work', output_field=CharField()))
 
-    print('A: ',rev_works_ids)
-    for i in rev_works_id:        
-        if i.users is None:
-            processed_ids.append(None)  # Залишаємо None
-        elif isinstance(i.users, str) and i.users.startswith("[") and i.users.endswith("]"):
-            i.users = i.users[1:-1]  # Прибираємо квадратні дужки
-            number_list = i.users.split(",")  # Розбиваємо по комі
-            for num in number_list:
-                num = num.strip()  # Видаляємо пробіли
-                if num.isdigit():  # Перевіряємо, чи це число
-                    processed_ids.append(int(num))
-                else:
-                    processed_ids.append(None)  # Якщо це список, додаємо всі елементи списку
-        else:
-            processed_ids.append(i.users)  # Якщо це одиночне число, додаємо його як є
-    print('F: ',processed_ids)
+        works = Work.objects.values('category', 'title', 'authors','file','file_size','uploaded_at','status').annotate(
+        send_at=Value(None, output_field=DateTimeField()), 
+        users=Value(None, output_field=TextField()),
+        source=Value('Work', output_field=CharField())  # Додаємо джерело
+        )
+        works_rev_union = works.union(rev_works_id)
+        print('R: ',works_rev_union)'''
 
-    data_dict = {obj.id: obj.username for obj in User.objects.filter(id__in=[x for x in processed_ids if x is not None])}
-    #rev_works = [data_dict.get(i, None) for i in processed_ids]
-    rev_works = []
-
-    for item in rev_works_ids:
-        if item is None:
-            rev_works.append(None)
-        elif item.startswith("[") and item.endswith("]"):
-            numbers = item[1:-1].split(", ")
-            rev_works.append([data_dict.get(int(num), None) for num in numbers])
-        else:
-            rev_works.append(data_dict.get(int(item), None))
-            
-    #rev_works_list = [data_dict.get(aid, None) for aid in rev_works_ids]
-    #rev_works = zip(rev_works_id, rev_works_list) 
-    
-    print(data_dict)
-    print(rev_works)
-    print('I: ',type(rev_works))'''
-    
-    '''for i in rev_works_ids:
-        print('I: ',i)
-        if i ==None:
-            i="-"'''
-    #
-    '''queryset=Review_Work.objects.select_related('user').prefetch_related(
-    'user__work_set',  
-    'user__user_data_set').all()
-    works_rev_join = [works_rev(obj.user.work_set.category, obj.user.work_set.title, obj.user.work_set.authors, obj.user.work_set.file, 
-                            obj.user.work_set.file_size, obj.user.work_set.uploaded_at, obj.user.work_set.status, obj.user, obj.send_at, obj.work_id,obj.user.user_data_set.lastname) for obj in queryset]
-    '''
-    '''work = Work.objects.select_related('user').values('category', 'title','authors','file','file_size','uploaded_at','status','user')
-    user_data = User_Data.objects.select_related('user').values('lastname')
-    review_work = Review_Work.objects.select_related('user').values('send_at', 'work_id')
-
-    works_rev_join = list(chain(work, user_data, review_work))'''
-    
-    #   3 TABLES
-    work = Work.objects.select_related('user')  # Отримуємо всі `Two` з `One`
-    reviewers_data = User_Data.objects.filter(user_id__in=user_ids)  
-    review_work = Review_Work.objects.all()
-
-    # Створюємо словник для швидкого доступу до three і four за one_id
-    user_data_dict = {i.user_id: i.lastname for i in reviewers_data}
-    review_work_dict = {i.work_id: i.send_at for i in review_work}
-    #print('d ',user_data_dict)
+        #works_rev_join = Work.objects.select_related('review_work').values('category', 'title', 'authors','file','file_size','uploaded_at','status' 'review_work__users','review_work__send_at')
+        #works_rev_join = Review_Work.objects.select_related('work').all() 
 
 
-    # 
-    one_data = Review_Work.objects.values('work_id', 'user_id')
-    # Створюємо словник work_id: [lastnames]
-    works_authors = defaultdict(list)
-    for entry in one_data:
-        work_id = entry['work_id']
-        author_id = entry['user_id']
-        works_authors[work_id].append(user_data_dict.get(author_id))
+        '''
+        queryset = Review_Work.objects.select_related('work').all()
+        
+        works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                                obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]'''
 
-    # Перетворюємо defaultdict у звичайний словник
-    works_authors = dict(works_authors)
+        #
+        '''
+        rev_works_ids = list(rev_works_id.values_list('users', flat=True))  
+        processed_ids = []
 
-    '''# Групуємо дані у словник
-    works_authors = defaultdict(list)
-    for item in data:
-        print('r ',item['work__id'])
-        works_authors[item['work__id']].append(user_data_dict)
+        print('A: ',rev_works_ids)
+        for i in rev_works_id:        
+            if i.users is None:
+                processed_ids.append(None)  # Залишаємо None
+            elif isinstance(i.users, str) and i.users.startswith("[") and i.users.endswith("]"):
+                i.users = i.users[1:-1]  # Прибираємо квадратні дужки
+                number_list = i.users.split(",")  # Розбиваємо по комі
+                for num in number_list:
+                    num = num.strip()  # Видаляємо пробіли
+                    if num.isdigit():  # Перевіряємо, чи це число
+                        processed_ids.append(int(num))
+                    else:
+                        processed_ids.append(None)  # Якщо це список, додаємо всі елементи списку
+            else:
+                processed_ids.append(i.users)  # Якщо це одиночне число, додаємо його як є
+        print('F: ',processed_ids)
 
-    #
-    works_authors = dict(works_authors)
+        data_dict = {obj.id: obj.username for obj in User.objects.filter(id__in=[x for x in processed_ids if x is not None])}
+        #rev_works = [data_dict.get(i, None) for i in processed_ids]
+        rev_works = []
 
-    print('D ',works_authors)'''
+        for item in rev_works_ids:
+            if item is None:
+                rev_works.append(None)
+            elif item.startswith("[") and item.endswith("]"):
+                numbers = item[1:-1].split(", ")
+                rev_works.append([data_dict.get(int(num), None) for num in numbers])
+            else:
+                rev_works.append(data_dict.get(int(item), None))
+                
+        #rev_works_list = [data_dict.get(aid, None) for aid in rev_works_ids]
+        #rev_works = zip(rev_works_id, rev_works_list) 
+        
+        print(data_dict)
+        print(rev_works)
+        print('I: ',type(rev_works))'''
+        
+        '''for i in rev_works_ids:
+            print('I: ',i)
+            if i ==None:
+                i="-"'''
+        #
+        '''queryset=Review_Work.objects.select_related('user').prefetch_related(
+        'user__work_set',  
+        'user__user_data_set').all()
+        works_rev_join = [works_rev(obj.user.work_set.category, obj.user.work_set.title, obj.user.work_set.authors, obj.user.work_set.file, 
+                                obj.user.work_set.file_size, obj.user.work_set.uploaded_at, obj.user.work_set.status, obj.user, obj.send_at, obj.work_id,obj.user.user_data_set.lastname) for obj in queryset]
+        '''
+        '''work = Work.objects.select_related('user').values('category', 'title','authors','file','file_size','uploaded_at','status','user')
+        user_data = User_Data.objects.select_related('user').values('lastname')
+        review_work = Review_Work.objects.select_related('user').values('send_at', 'work_id')
 
-    # Формуємо список об'єктів для шаблону
-    works_rev_join = []
-    available_status=[]
-    available_role=[]
-    available_email_status=[]
-    for i in work:
-        works_rev_join.append({
-            'id':i.id,
-            'category': i.category, 
-            'title': i.title,
-            'authors': i.authors,
-            'file': i.file,
-            'file_size': i.file_size,
-            'uploaded_at': i.uploaded_at,
-            'status':i.status,
-            'user':i.user,
-            'email_status':i.email_status,
+        works_rev_join = list(chain(work, user_data, review_work))'''
+        
+        #   3 TABLES
+        work = Work.objects.select_related('user')  # Отримуємо всі `Two` з `One`
+        reviewers_data = User_Data.objects.filter(user_id__in=user_ids)  
+        review_work = Review_Work.objects.all()
 
-            #'lastname': user_data_dict.get(i.user_id, ""),
-            'send_at': review_work_dict.get(i.user_id, ""),
-            'lastname': works_authors.get(i.id, [])
-        })
-        available_status.append(i.status)
-        available_email_status.append(i.email_status)
-    available_status=set(available_status)
-    available_email_status=set(available_email_status)
-    
-
-    # Отримуємо тип, за яким фільтруємо
-    work_status = request.GET.get("filter", "")
-    selected_email_status = request.GET.get("email_status", "")
-    user_role = request.GET.get("role_filter", "")
-
-    # Визначаємо, чи сортуємо за зростанням чи спаданням
-    sort_order = request.GET.get("order", "asc")  # За замовчуванням - зростання
-    reverse = sort_order == "desc"
-
-    if selected_email_status:
-        works_rev_join = [item for item in works_rev_join if item["email_status"] == selected_email_status]
-
-    # Фільтрація за типом
-    if work_status:
-        works_rev_join = [item for item in works_rev_join if item["status"] == work_status]
-
-    # Сортування за датою
-    works_rev_join.sort(key=lambda x: x["uploaded_at"], reverse=reverse)
-
-
-    #user role
-    users_roles= User_Data.objects.values('user_id','firstname','lastname','user__email','user__user_role__user_role','user__username')
-    if user_role:
-        users_roles = [item for item in users_roles if item["user__user_role__user_role"] == user_role]
-
-    user_data= User_Data.objects.filter(user=request.user)
+        # Створюємо словник для швидкого доступу до three і four за one_id
+        user_data_dict = {i.user_id: i.lastname for i in reviewers_data}
+        review_work_dict = {i.work_id: i.send_at for i in review_work}
+        #print('d ',user_data_dict)
 
 
-    user_role_dict = [item["user__user_role__user_role"] for item in users_roles]
-    available_role=set(user_role_dict)
+        # 
+        one_data = Review_Work.objects.values('work_id', 'user_id')
+        # Створюємо словник work_id: [lastnames]
+        works_authors = defaultdict(list)
+        for entry in one_data:
+            work_id = entry['work_id']
+            author_id = entry['user_id']
+            works_authors[work_id].append(user_data_dict.get(author_id))
 
-    '''work_status = request.GET.get('filter')
-    if work_status:
-        works_rev_join = [item for item in works_rev_join if item['status'] == work_status]
-    print('j ',works_rev_join)
+        # Перетворюємо defaultdict у звичайний словник
+        works_authors = dict(works_authors)
 
-    sort_param = request.GET.get("sort")
-    if sort_param == "date":
-        works_rev_join = sorted(works_rev_join, key=lambda x: x["send_at"], reverse=True)'''
+        '''# Групуємо дані у словник
+        works_authors = defaultdict(list)
+        for item in data:
+            print('r ',item['work__id'])
+            works_authors[item['work__id']].append(user_data_dict)
 
-    '''queryset=Review_Work.objects.select_related('user').prefetch_related(
-    'user__work_set',  
-    'user__user_data_set').all()
-    works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]'''
-    
-    return render(request, 'base/adm-upload.html', {'reviewers': reviewers_data,'works_rev_join': works_rev_join,'works_authors': works_authors,
-                                                    'available_status':available_status,"work_status": work_status,"selected_order": sort_order, 
-                                                    'available_email_status':available_email_status,'selected_email_status':selected_email_status,'available_role':available_role,
-                                                    'users_roles':users_roles,'user_data':user_data})
+        #
+        works_authors = dict(works_authors)
+
+        print('D ',works_authors)'''
+
+        # Формуємо список об'єктів для шаблону
+        works_rev_join = []
+        available_status=[]
+        available_role=[]
+        available_email_status=[]
+        for i in work:
+            works_rev_join.append({
+                'id':i.id,
+                'category': i.category, 
+                'title': i.title,
+                'authors': i.authors,
+                'file': i.file,
+                'file_size': i.file_size,
+                'uploaded_at': i.uploaded_at,
+                'status':i.status,
+                'user':i.user,
+                'email_status':i.email_status,
+
+                #'lastname': user_data_dict.get(i.user_id, ""),
+                'send_at': review_work_dict.get(i.user_id, ""),
+                'lastname': works_authors.get(i.id, [])
+            })
+            available_status.append(i.status)
+            available_email_status.append(i.email_status)
+        available_status=set(available_status)
+        available_email_status=set(available_email_status)
+        
+
+        # Отримуємо тип, за яким фільтруємо
+        work_status = request.GET.get("filter", "")
+        selected_email_status = request.GET.get("email_status", "")
+        user_role = request.GET.get("role_filter", "")
+
+        # Визначаємо, чи сортуємо за зростанням чи спаданням
+        sort_order = request.GET.get("order", "asc")  # За замовчуванням - зростання
+        reverse = sort_order == "desc"
+
+        if selected_email_status:
+            works_rev_join = [item for item in works_rev_join if item["email_status"] == selected_email_status]
+
+        # Фільтрація за типом
+        if work_status:
+            works_rev_join = [item for item in works_rev_join if item["status"] == work_status]
+
+        # Сортування за датою
+        works_rev_join.sort(key=lambda x: x["uploaded_at"], reverse=reverse)
+
+
+        #user role
+        users_roles= User_Data.objects.values('user_id','firstname','lastname','user__email','user__user_role__user_role','user__username')
+        if user_role:
+            users_roles = [item for item in users_roles if item["user__user_role__user_role"] == user_role]
+
+        user_data= User_Data.objects.filter(user=request.user)
+
+
+        user_role_dict = [item["user__user_role__user_role"] for item in users_roles]
+        available_role=set(user_role_dict)
+
+        '''work_status = request.GET.get('filter')
+        if work_status:
+            works_rev_join = [item for item in works_rev_join if item['status'] == work_status]
+        print('j ',works_rev_join)
+
+        sort_param = request.GET.get("sort")
+        if sort_param == "date":
+            works_rev_join = sorted(works_rev_join, key=lambda x: x["send_at"], reverse=True)'''
+
+        '''queryset=Review_Work.objects.select_related('user').prefetch_related(
+        'user__work_set',  
+        'user__user_data_set').all()
+        works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                                obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]'''
+        
+        return render(request, 'base/adm-upload.html', {'reviewers': reviewers_data,'works_rev_join': works_rev_join,'works_authors': works_authors,
+                                                        'available_status':available_status,"work_status": work_status,"selected_order": sort_order, 
+                                                        'available_email_status':available_email_status,'selected_email_status':selected_email_status,'available_role':available_role,
+                                                        'users_roles':users_roles,'user_data':user_data})
+    raise Http404()
 
 def to_review(request):
-    selected_works = request.POST.getlist('selected_works')
-    if not selected_works:
-        return redirect('admin_home')
-    users_works=Work.objects.filter(id__in=selected_works)
-        
-    title_list=[]
-    rev_names=request.POST.getlist('reviewer')
-    for user_work in users_works:
-        rev_works=Review_Work.objects.filter(work_id=user_work.id)
-        if rev_works:
-            for rev_work in rev_works:
-                rev_work.delete()
-        for i in rev_names:
-            reviewer =User.objects.get(id=i)
+    if request.user.is_superuser:
+        selected_works = request.POST.getlist('selected_works')
+        if not selected_works:
+            return redirect('admin_home')
+        users_works=Work.objects.filter(id__in=selected_works)
             
-            Review_Work.objects.create(
-                work=user_work,
-                user=reviewer
-            )
-        title_list.append(user_work.title)
-    title=', '.join(title_list)       
-    '''rev_ids=[]
-        rev_objs=[]
+        title_list=[]
+        reviewers_for_check=[]
+        rev_names=request.POST.getlist('reviewer')
+        
+        rev_ids=[]
+        rev_s=[]
         for i in rev_names:
-            rev_objs.append(User.objects.get(username=i))
-        for i in rev_objs:
-            rev_ids.append(i.id)
-        review_work.users=(rev_ids)
-        review_work.save()'''
-    
-    messages.success(request, title+' - Successfully submitted for review')
-    return redirect('admin_home')
- 
+            rev_s.append(User.objects.get(id=i))
+            rev_ids.append(int(i))
+            
+        for user_work in users_works:
+            rev_works=Review_Work.objects.filter(work_id=user_work.id)
+
+        for rev_work in rev_works:
+            for i in rev_s:
+                if rev_work.user_id not in rev_ids:
+                    rev_work.delete()    
+                else:
+                    rev_s.remove(i)                
+                    reviewers_for_check.append(i.username)    
+        title_list.append(user_work.title)
+
+        for rev_work in rev_works:
+            for i in rev_s:
+                Review_Work.objects.create(
+                    work=user_work,
+                    user=i
+                )
+                reviewers_for_check.append(i.username)    
+        
+        messages.success(request, ', '.join(title_list)  +' - Successfully submitted to '+ ', '.join(reviewers_for_check))
+        return redirect('admin_home')
+    raise Http404()
+
 '''def status_change(request, id):
     edit_element = Work.objects.get(id=id)
     
@@ -297,355 +306,151 @@ def to_review(request):
     return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'edit_element': edit_element})
 '''
 def email_send(request):
-    if 'to_review'in request.POST:
-        to_review(request)
-    elif 'email' in request.POST:
-        selected_works = request.POST.getlist('selected_works')
-        new_status = request.POST.get('work_status')
+    if request.user.is_superuser:
+        if 'to_review'in request.POST:
+            to_review(request)
+        elif 'email' in request.POST:
+            selected_works = request.POST.getlist('selected_works')
+            new_status = request.POST.get('work_status')
 
-        if not selected_works:
+            if not selected_works:
+                return redirect('admin_home')
+
+            users_works =Work.objects.select_related('user').values('id','title','status', 'user__username', 'user__email').filter(id__in=selected_works)
+            print(users_works)
+            users_names=[]
+            for user_work in users_works:
+                works= Work.objects.filter(id = user_work['id'])
+                print(user_work['id'],users_works)
+                current_work=Review_Work.objects.values('description').filter(work_id=user_work['id'])
+                users_names.append(user_work['user__username']+'. ')
+                print('h ',current_work, type(current_work))
+                for work in works:
+                    work.status=new_status
+                    work.email_status='submitted'
+                    work.save()
+
+                descriptions = "\n".join(i['description'] for i in current_work if i['description'] is not None)
+
+                subject = f"Status Update - {user_work['title']}"
+                if new_status=='finalise':
+                    message=f"Dear {user_work['user__username']}, \n\nYour work '{user_work['title']}' has been "+new_status+"."
+                    if len(descriptions)!=0:
+                        message+="\nFeedbacks: \n"+descriptions
+                    message+="\n\nPlease, after finalising the work, do not send a new one, but edit this one. Thank you.\n\nSincerely, Administration"
+                else:
+                    message=f"Dear {user_work['user__username']}, \n\nYour work '{user_work['title']}' has been "+new_status +"."
+                    if len(descriptions)!=0:
+                        message+="\nFeedbacks: \n"+descriptions
+                    message+="\n\nSincerely, Administration"
+                
+                recipient_email = user_work['user__email']
+
+                send_mail(subject, message, 'your_email@gmail.com', [recipient_email])
+
+            messages.info(request, f"Selected work have been marked as {new_status} and {users_names} have been notified")
             return redirect('admin_home')
+        
+        elif 'description'in request.POST:
+            selected_works = request.POST.getlist('selected_works')
+            users_works =Review_Work.objects.select_related('work').values('work__title','status','description','user__user_data__lastname').filter(work_id__in=selected_works)
 
-        users_works =Work.objects.select_related('user').values('id','title','status', 'user__username', 'user__email').filter(id__in=selected_works)
-        print(users_works)
-        users_names=[]
-        for user_work in users_works:
-            works= Work.objects.filter(id = user_work['id'])
-            print(user_work['id'],users_works)
-            current_work=Review_Work.objects.values('description').filter(work_id=user_work['id'])
-            users_names.append(user_work['user__username']+'. ')
-            print('h ',current_work, type(current_work))
-            for work in works:
-                work.status=new_status
-                work.email_status='submitted'
-                work.save()
-
-            descriptions = "\n".join(i['description'] for i in current_work if i['description'] is not None)
-
-            subject = f"Status Update - {user_work['title']}"
-            if new_status=='finalise':
-                message=f"Dear {user_work['user__username']}, \n\nYour work '{user_work['title']}' has been "+new_status+"."
-                if len(descriptions)!=0:
-                    message+="\nFeedbacks: \n"+descriptions
-                message+="\n\nPlease, after finalising the work, do not send a new one, but edit this one. Thank you.\n\nSincerely, Administration"
-            else:
-                message=f"Dear {user_work['user__username']}, \n\nYour work '{user_work['title']}' has been "+new_status +"."
-                if len(descriptions)!=0:
-                    message+="\nFeedbacks: \n"+descriptions
-                message+="\n\nSincerely, Administration"
+            if not selected_works:
+                return redirect('admin_home')
             
-            recipient_email = user_work['user__email']
+            reviewers_id = User_Role.objects.filter(user_role='reviewer')  
+            user_ids = reviewers_id.values_list('user_id', flat=True)  
+            reviewers = User.objects.filter(id__in=user_ids)
+            work = Work.objects.select_related('user')  
+            reviewers_data = User_Data.objects.filter(user_id__in=user_ids)  
+            review_work = Review_Work.objects.all()
+            user_data_dict = {i.user_id: i.lastname for i in reviewers_data}
+            review_work_dict = {i.work_id: i.send_at for i in review_work}
 
-            send_mail(subject, message, 'your_email@gmail.com', [recipient_email])
+            one_data = Review_Work.objects.values('work_id', 'user_id')
+            works_authors = defaultdict(list)
+            for entry in one_data:
+                work_id = entry['work_id']
+                author_id = entry['user_id']
+                works_authors[work_id].append(user_data_dict.get(author_id))
 
-        messages.info(request, f"Selected work have been marked as {new_status} and {users_names} have been notified")
+            works_authors = dict(works_authors)
+
+            works_rev_join = []
+            available_status=[]
+            available_role=[]
+            available_email_status=[]
+            for i in work:
+                works_rev_join.append({
+                    'id':i.id,
+                    'category': i.category, 
+                    'title': i.title,
+                    'authors': i.authors,
+                    'file': i.file,
+                    'file_size': i.file_size,
+                    'uploaded_at': i.uploaded_at,
+                    'status':i.status,
+                    'user':i.user,
+                    'email_status':i.email_status,
+
+                    'send_at': review_work_dict.get(i.user_id, ""),
+                    'lastname': works_authors.get(i.id, [])
+                })
+                available_status.append(i.status)
+                available_email_status.append(i.email_status)
+            available_status=set(available_status)
+            available_email_status=set(available_email_status)
+                
+            work_status = request.GET.get("filter", "")
+            selected_email_status = request.GET.get("email_status", "")
+            user_role = request.GET.get("role_filter", "")
+
+            sort_order = request.GET.get("order", "asc") 
+            reverse = sort_order == "desc"
+
+            if selected_email_status:
+                works_rev_join = [item for item in works_rev_join if item["email_status"] == selected_email_status]
+
+            if work_status:
+                works_rev_join = [item for item in works_rev_join if item["status"] == work_status]
+
+            works_rev_join.sort(key=lambda x: x["uploaded_at"], reverse=reverse)
+            users_roles= User_Data.objects.values('user_id','firstname','lastname','user__email','user__user_role__user_role','user__username')
+            if user_role:
+                users_roles = [item for item in users_roles if item["user__user_role__user_role"] == user_role]
+
+            user_data= User_Data.objects.filter(user=request.user)
+
+
+            user_role_dict = [item["user__user_role__user_role"] for item in users_roles]
+            available_role=set(user_role_dict)
+            return render(request, 'base/adm-upload.html', {'reviewers': reviewers_data,'works_rev_join': works_rev_join,'works_authors': works_authors,
+                            'available_status':available_status,"work_status": work_status,"selected_order": sort_order, 
+                            'available_email_status':available_email_status,'selected_email_status':selected_email_status,'available_role':available_role,
+                            'users_roles':users_roles,'user_data':user_data, 'users_works': users_works
+                            })   
         return redirect('admin_home')
-    
-    elif 'description'in request.POST:
-        selected_works = request.POST.getlist('selected_works')
-        users_works =Review_Work.objects.select_related('work').values('work__title','status','description','user__user_data__lastname').filter(work_id__in=selected_works)
-
-        if not selected_works:
-            return redirect('admin_home')
-        
-        reviewers_id = User_Role.objects.filter(user_role='reviewer')  
-        user_ids = reviewers_id.values_list('user_id', flat=True)  
-        reviewers = User.objects.filter(id__in=user_ids)
-        work = Work.objects.select_related('user')  
-        reviewers_data = User_Data.objects.filter(user_id__in=user_ids)  
-        review_work = Review_Work.objects.all()
-        user_data_dict = {i.user_id: i.lastname for i in reviewers_data}
-        review_work_dict = {i.work_id: i.send_at for i in review_work}
-
-        one_data = Review_Work.objects.values('work_id', 'user_id')
-        works_authors = defaultdict(list)
-        for entry in one_data:
-            work_id = entry['work_id']
-            author_id = entry['user_id']
-            works_authors[work_id].append(user_data_dict.get(author_id))
-
-        works_authors = dict(works_authors)
-        works_rev_join = []
-        for i in work:
-            works_rev_join.append({
-                'id':i.id,
-                'category': i.category, 
-                'title': i.title,
-                'authors': i.authors,
-                'file': i.file,
-                'file_size': i.file_size,
-                'uploaded_at': i.uploaded_at,
-                'status':i.status,
-                'user':i.user,
-
-                'send_at': review_work_dict.get(i.user_id, ""),
-                'lastname': works_authors.get(i.id, [])
-            })
-        
-        
-        return render(request, 'base/adm-upload.html', {'reviewers': reviewers,'works_rev_join': works_rev_join,'users_works': users_works})
-    return redirect('admin_home')
+    raise Http404()
 
 def assign_role(request):
-    selected_users = request.POST.getlist('selected_users')
-    new_role = request.POST.get('user_role')
+    if request.user.is_superuser:
+        selected_users = request.POST.getlist('selected_users')
+        new_role = request.POST.get('user_role')
 
-    users =User_Role.objects.filter(user_id__in=selected_users)
-    for user in users:
-        user.user_role=new_role
-        user.save()
-    return redirect ('admin_home')
-
+        users =User_Role.objects.filter(user_id__in=selected_users)
+        for user in users:
+            user.user_role=new_role
+            user.save()
+        return redirect ('admin_home')
+    raise Http404()
 
 def reviewer_home(request):
-    #   3 TABLES
-    work_id_for_review=[Review_Work.objects.values('work_id').filter(user_id=request.user.id)]  
-    work=Work.objects.select_related('user').filter(id__in=work_id_for_review)
-    reviewers_data = User_Data.objects.filter(user_id=request.user.id)  
-    review_work = Review_Work.objects.filter(user_id=request.user.id) 
-
-    user_data_dict = {i.user_id: i.lastname for i in reviewers_data}
-    review_work_dict = {i.work_id: i.send_at for i in review_work}    
-    review_work_status_dict = {i.work_id: i.status for i in review_work} 
-    
-    one_data = Review_Work.objects.values('work_id', 'user_id')
-    works_authors = defaultdict(list)
-    for entry in one_data:
-        work_id = entry['work_id']
-        author_id = entry['user_id']
-        works_authors[work_id].append(user_data_dict.get(author_id))
-
-    works_authors = dict(works_authors)
-    reviewer_tasks = []
-    available_status=[]
-    for i in work:
-        reviewer_tasks.append({
-            'id':i.id,
-            'category': i.category, 
-            'title': i.title,
-            'authors': i.authors,
-            'file': i.file,
-            'file_size': i.file_size,
-            'uploaded_at': i.uploaded_at,
-            'user':i.user,
-
-            #'lastname': user_data_dict.get(i.user_id, ""),
-            'send_at': review_work_dict.get(i.id, ""),
-            'lastname': works_authors.get(i.id, []),
-            'status': review_work_status_dict.get(i.id, ""),
-        })
-        available_status.append(review_work_status_dict.get(i.id, ""))# Отримуємо унікальні типи для фільтра
-    available_status=set(available_status)
-    
-    
-    # Отримуємо тип, за яким фільтруємо
-    work_status = request.GET.get("filter", "")
-
-    # Визначаємо, чи сортуємо за зростанням чи спаданням
-    sort_order = request.GET.get("order", "asc")  # За замовчуванням - зростання
-    reverse = sort_order == "desc"
-
-    # Фільтрація за типом
-    if work_status:
-        reviewer_tasks = [item for item in reviewer_tasks if item["status"] == work_status]
-
-    # Сортування за датою
-    reviewer_tasks.sort(key=lambda x: x["uploaded_at"], reverse=reverse)
-
-    
-    '''queryset = Review_Work.objects.select_related('work').all()
-    work_ids_list=[]
-    
-    works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]
-    print(works_rev_join)
-    for i in works_rev_join:    
-        if i.users is not None:
-            num_list=i.users[1:-1].split(", ") 
-            for j in num_list:
-                if int(j)==request.user.id:
-                    work_ids_list.append(i.title)'''
-
-    #reviewer_tasks=Work.objects.filter(title__in = work_ids_list)
-    '''reviewer_list=Work.objects.only('id').filter(title__in = work_ids_list)
-    queryset=Review_Work.objects.select_related('work').filter(work_id__in = reviewer_list)
-    reviewer_tasks = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]'''
-
-    '''reviewers_id=Review_Work.objects.values_list('users', flat=True)
-    print(reviewers_id)
-    
-    authors_ids_list=[]
-    for i in reviewers_id:
-        if i is None:
-            authors_ids_list.append(None)
-        elif isinstance(i, str):
-            i= i[1:-1]
-            number_list = i.split(", ")
-            for num in number_list:
-                num = num.strip()
-                authors_ids_list.append(num)
-        else:
-            authors_ids_list.append(i)  # Якщо це одиночне число, додаємо його як є
-        print(i)
-        print('L; ',authors_ids_list)
-        
-    print('JL ', authors_ids_list)
-    work_for_review=Review_Work.objects.values_list('work_id', flat=True).filter(user_id=request.user.id)'''
-    #reviewer_tasks=Review_Work.objects.values_list('send_at', flat=True).filter(work_id=work_for_review)
-    '''
-    queryset = Review_Work.objects.select_related('work').filter(id__in=work_for_review)
-    
-    reviewer_tasks = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at) for obj in queryset]
-
-    
-    print(reviewer_tasks.values_list('send_at', flat=True)) '''
-    
-    user_data= User_Data.objects.filter(user_id=request.user.id).values('firstname','lastname','job')
-
-    return render(request, 'base/reviewer_home.html', {'reviewer_tasks':reviewer_tasks,'available_status':available_status,
-                                                    "work_status": work_status,"selected_order": sort_order,'user_data':user_data})
-
-def work_status_check(id):
-    status_check=Review_Work.objects.values('status').order_by('user_id').filter(work_id=id)
-    status_list=[]
-    for i in status_check:
-        status_list.append(i['status'])
-    print('Y ', status_list)
-    work= Work.objects.get(id=id)
-    if all(i == 'accept' for i in status_list):    
-        work.status='accept'
-        work.save()
-    if 'refuse' in status_list:
-        work.status='refuse'
-        work.save()
-    if 'finalise' in status_list:
-        work.status='finalise'
-        work.save()        
-
-
-def review_status(request,id):
-    review_element= Work.objects.get(id=id)
-    
-    if request.method == "POST":
-        #works=Work.objects.get(title=request.POST['title'], user_id=request.user.id)
-
-        review_work=Review_Work.objects.get(work_id=id, user_id=request.user.id)
-        review_work.status=request.POST['work_status']
-        review_work.description=request.POST['feedback']
-        review_work.save()
-        work_status_check(id)
-
-        messages.success(request, request.POST['title'] +' - '+ review_work.status)
-        return redirect('reviewer_home')
-    
-    '''queryset = Review_Work.objects.select_related('work').all()
-    work_ids_list=[]
-    
-    works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.id) for obj in queryset]
-    for i in works_rev_join:
-        if i.users is not None:
-            num_list=i.users[1:-1].split(", ") 
-            for j in num_list:
-                if int(j)==request.user.id:
-                    work_ids_list.append(i.title)
-    reviewer_list=Work.objects.only('id').filter(title__in = work_ids_list)
-    queryset=Review_Work.objects.select_related('work').filter(work_id__in = reviewer_list)
-    reviewer_tasks = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
-                        obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at, obj.work_id) for obj in queryset]'''
-    #   3 TABLES
-    work_id_for_review=[Review_Work.objects.values('work_id').filter(user_id=request.user.id)]  
-    work=Work.objects.select_related('user').filter(id__in=work_id_for_review)
-    reviewers_data = User_Data.objects.filter(user_id=request.user.id)  
-    review_work = Review_Work.objects.filter(user_id=request.user.id)  
-
-    user_data_dict = {i.user_id: i.lastname for i in reviewers_data}
-    review_work_dict = {i.work_id: i.send_at for i in review_work}   
-    review_work_status_dict = {i.work_id: i.status for i in review_work} 
-    
-    one_data = Review_Work.objects.values('work_id', 'user_id')
-    works_authors = defaultdict(list)
-    for entry in one_data:
-        work_id = entry['work_id']
-        author_id = entry['user_id']
-        works_authors[work_id].append(user_data_dict.get(author_id))
-
-    works_authors = dict(works_authors)
-    reviewer_tasks = []
-    available_status=[]
-    for i in work:
-        reviewer_tasks.append({
-            'id':i.id,
-            'category': i.category, 
-            'title': i.title,
-            'authors': i.authors,
-            'file': i.file,
-            'file_size': i.file_size,
-            'uploaded_at': i.uploaded_at,
-            'user':i.user,
-
-            #'lastname': user_data_dict.get(i.user_id, ""),
-            'status': review_work_status_dict.get(i.id, ""),
-            'send_at': review_work_dict.get(i.id, ""),
-            'lastname': works_authors.get(i.id, [])
-        })
-        available_status.append(review_work_status_dict.get(i.id, ""))# Отримуємо унікальні типи для фільтра
-    available_status=set(available_status)
-   
-    # Отримуємо тип, за яким фільтруємо
-    work_status = request.GET.get("filter", "")
-
-    # Визначаємо, чи сортуємо за зростанням чи спаданням
-    sort_order = request.GET.get("order", "asc")  # За замовчуванням - зростання
-    reverse = sort_order == "desc"
-
-    # Фільтрація за типом
-    if work_status:
-        reviewer_tasks = [item for item in reviewer_tasks if item["status"] == work_status]
-
-    # Сортування за датою
-    reviewer_tasks.sort(key=lambda x: x["uploaded_at"], reverse=reverse)
-
-    return render(request, 'base/reviewer_home.html', {'reviewer_tasks': reviewer_tasks,'review_element': review_element,
-                                                       'available_status':available_status, "work_status": work_status,"selected_order": sort_order})
-
-def review_file(request,id):
-    '''rewiew_element = Work.objects.get(id=id)
-    url = rewiew_element.file.path
-    filename = os.path.basename(url)
-    response = StreamingHttpResponse(streaming_content=url)
-    response['Content-Disposition'] = f'attachement; filename="{filename}"'
-
-    return response'''
-    rewiew_element = Work.objects.get(id=id)
-    print('j ',rewiew_element.file.path)
-    url = rewiew_element.file.path
-    try:
-        rewiew_element.status='review'
-        rewiew_element.save()
-        response = FileResponse(open(url, 'rb'), content_type='application/pdf')
-        response['Content-Disposition'] = f'inline; filename="{rewiew_element.title}"'
-        #return FileResponse(open(url, 'rb'), content_type='application/pdf')
-        return response
-    except FileNotFoundError:
-        raise Http404()
-
-def view_description(request):    
-    if request.POST:
-        selected_works = request.POST.getlist('selected_works')
-        print('k ', selected_works)
-        users_works =Review_Work.objects.select_related('work').values('work__title','status','description').filter(work_id__in=selected_works, user_id=request.user.id)
-        print('h ',users_works)
-
-        if not selected_works:
-            return redirect('reviewer_home')
-            
+    if User_Role.objects.values('user_role').get(user_id=request.user.id)['user_role'] == 'reviewer':  
+        #   3 TABLES
         work_id_for_review=[Review_Work.objects.values('work_id').filter(user_id=request.user.id)]  
         work=Work.objects.select_related('user').filter(id__in=work_id_for_review)
         reviewers_data = User_Data.objects.filter(user_id=request.user.id)  
-        review_work = Review_Work.objects.filter(user_id=request.user.id)  
+        review_work = Review_Work.objects.filter(user_id=request.user.id) 
 
         user_data_dict = {i.user_id: i.lastname for i in reviewers_data}
         review_work_dict = {i.work_id: i.send_at for i in review_work}    
@@ -679,8 +484,9 @@ def view_description(request):
             })
             available_status.append(review_work_status_dict.get(i.id, ""))# Отримуємо унікальні типи для фільтра
         available_status=set(available_status)
-    
-            # Отримуємо тип, за яким фільтруємо
+        
+        
+        # Отримуємо тип, за яким фільтруємо
         work_status = request.GET.get("filter", "")
 
         # Визначаємо, чи сортуємо за зростанням чи спаданням
@@ -693,25 +499,276 @@ def view_description(request):
 
         # Сортування за датою
         reviewer_tasks.sort(key=lambda x: x["uploaded_at"], reverse=reverse)
+
         
-        return render(request, 'base/reviewer_home.html', {'reviewer_tasks':reviewer_tasks, 'users_works': users_works,
-                                                           'available_status':available_status, "work_status": work_status,"selected_order": sort_order})
+        '''queryset = Review_Work.objects.select_related('work').all()
+        work_ids_list=[]
+        
+        works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                                obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]
+        print(works_rev_join)
+        for i in works_rev_join:    
+            if i.users is not None:
+                num_list=i.users[1:-1].split(", ") 
+                for j in num_list:
+                    if int(j)==request.user.id:
+                        work_ids_list.append(i.title)'''
 
-    return redirect('reviewer_home')
+        #reviewer_tasks=Work.objects.filter(title__in = work_ids_list)
+        '''reviewer_list=Work.objects.only('id').filter(title__in = work_ids_list)
+        queryset=Review_Work.objects.select_related('work').filter(work_id__in = reviewer_list)
+        reviewer_tasks = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                                obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.work_id) for obj in queryset]'''
 
+        '''reviewers_id=Review_Work.objects.values_list('users', flat=True)
+        print(reviewers_id)
+        
+        authors_ids_list=[]
+        for i in reviewers_id:
+            if i is None:
+                authors_ids_list.append(None)
+            elif isinstance(i, str):
+                i= i[1:-1]
+                number_list = i.split(", ")
+                for num in number_list:
+                    num = num.strip()
+                    authors_ids_list.append(num)
+            else:
+                authors_ids_list.append(i)  # Якщо це одиночне число, додаємо його як є
+            print(i)
+            print('L; ',authors_ids_list)
+            
+        print('JL ', authors_ids_list)
+        work_for_review=Review_Work.objects.values_list('work_id', flat=True).filter(user_id=request.user.id)'''
+        #reviewer_tasks=Review_Work.objects.values_list('send_at', flat=True).filter(work_id=work_for_review)
+        '''
+        queryset = Review_Work.objects.select_related('work').filter(id__in=work_for_review)
+        
+        reviewer_tasks = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                                obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at) for obj in queryset]
+
+        
+        print(reviewer_tasks.values_list('send_at', flat=True)) '''
+        
+        user_data= User_Data.objects.filter(user_id=request.user.id).values('firstname','lastname','job')
+
+        return render(request, 'base/reviewer_home.html', {'reviewer_tasks':reviewer_tasks,'available_status':available_status,
+                                                        "work_status": work_status,"selected_order": sort_order,'user_data':user_data})
+    raise Http404()
+
+def work_status_check(id):
+    if User_Role.objects.values('user_role').get(user_id=request.user.id)['user_role'] == 'reviewer': 
+        status_check=Review_Work.objects.values('status').order_by('user_id').filter(work_id=id)
+        status_list=[]
+        for i in status_check:
+            status_list.append(i['status'])
+        print('Y ', status_list)
+        work= Work.objects.get(id=id)
+        if all(i == 'accept' for i in status_list):    
+            work.status='accept'
+            work.save()
+        if 'refuse' in status_list:
+            work.status='refuse'
+            work.save()
+        if 'finalise' in status_list:
+            work.status='finalise'
+            work.save()        
+    raise Http404()
+
+def review_status(request,id):
+    if User_Role.objects.values('user_role').get(user_id=request.user.id)['user_role'] == 'reviewer': 
+        review_element= Work.objects.get(id=id)
+        
+        if request.method == "POST":
+            #works=Work.objects.get(title=request.POST['title'], user_id=request.user.id)
+
+            review_work=Review_Work.objects.get(work_id=id, user_id=request.user.id)
+            review_work.status=request.POST['work_status']
+            review_work.description=request.POST['feedback']
+            review_work.save()
+            work_status_check(id)
+
+            messages.success(request, request.POST['title'] +' - '+ review_work.status)
+            return redirect('reviewer_home')
+        
+        '''queryset = Review_Work.objects.select_related('work').all()
+        work_ids_list=[]
+        
+        works_rev_join = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                                obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.user, obj.send_at, obj.id) for obj in queryset]
+        for i in works_rev_join:
+            if i.users is not None:
+                num_list=i.users[1:-1].split(", ") 
+                for j in num_list:
+                    if int(j)==request.user.id:
+                        work_ids_list.append(i.title)
+        reviewer_list=Work.objects.only('id').filter(title__in = work_ids_list)
+        queryset=Review_Work.objects.select_related('work').filter(work_id__in = reviewer_list)
+        reviewer_tasks = [works_rev(obj.work.category, obj.work.title, obj.work.authors, obj.work.file, 
+                            obj.work.file_size, obj.work.uploaded_at, obj.work.status, obj.users, obj.send_at, obj.work_id) for obj in queryset]'''
+        #   3 TABLES
+        work_id_for_review=[Review_Work.objects.values('work_id').filter(user_id=request.user.id)]  
+        work=Work.objects.select_related('user').filter(id__in=work_id_for_review)
+        reviewers_data = User_Data.objects.filter(user_id=request.user.id)  
+        review_work = Review_Work.objects.filter(user_id=request.user.id)  
+
+        user_data_dict = {i.user_id: i.lastname for i in reviewers_data}
+        review_work_dict = {i.work_id: i.send_at for i in review_work}   
+        review_work_status_dict = {i.work_id: i.status for i in review_work} 
+        
+        one_data = Review_Work.objects.values('work_id', 'user_id')
+        works_authors = defaultdict(list)
+        for entry in one_data:
+            work_id = entry['work_id']
+            author_id = entry['user_id']
+            works_authors[work_id].append(user_data_dict.get(author_id))
+
+        works_authors = dict(works_authors)
+        reviewer_tasks = []
+        available_status=[]
+        for i in work:
+            reviewer_tasks.append({
+                'id':i.id,
+                'category': i.category, 
+                'title': i.title,
+                'authors': i.authors,
+                'file': i.file,
+                'file_size': i.file_size,
+                'uploaded_at': i.uploaded_at,
+                'user':i.user,
+
+                #'lastname': user_data_dict.get(i.user_id, ""),
+                'status': review_work_status_dict.get(i.id, ""),
+                'send_at': review_work_dict.get(i.id, ""),
+                'lastname': works_authors.get(i.id, [])
+            })
+            available_status.append(review_work_status_dict.get(i.id, ""))# Отримуємо унікальні типи для фільтра
+        available_status=set(available_status)
+    
+        # Отримуємо тип, за яким фільтруємо
+        work_status = request.GET.get("filter", "")
+
+        # Визначаємо, чи сортуємо за зростанням чи спаданням
+        sort_order = request.GET.get("order", "asc")  # За замовчуванням - зростання
+        reverse = sort_order == "desc"
+
+        # Фільтрація за типом
+        if work_status:
+            reviewer_tasks = [item for item in reviewer_tasks if item["status"] == work_status]
+
+        # Сортування за датою
+        reviewer_tasks.sort(key=lambda x: x["uploaded_at"], reverse=reverse)
+
+        return render(request, 'base/reviewer_home.html', {'reviewer_tasks': reviewer_tasks,'review_element': review_element,
+                                                        'available_status':available_status, "work_status": work_status,"selected_order": sort_order})
+    raise Http404()
+def review_file(request,id):
+    '''rewiew_element = Work.objects.get(id=id)
+    url = rewiew_element.file.path
+    filename = os.path.basename(url)
+    response = StreamingHttpResponse(streaming_content=url)
+    response['Content-Disposition'] = f'attachement; filename="{filename}"'
+
+    return response'''
+    
+    if User_Role.objects.values('user_role').get(user_id=request.user.id)['user_role'] == 'reviewer': 
+        rewiew_element = Work.objects.get(id=id)
+        print('j ',rewiew_element.file.path)
+        url = rewiew_element.file.path
+        try:
+            rewiew_element.status='review'
+            rewiew_element.save()
+            response = FileResponse(open(url, 'rb'), content_type='application/pdf')
+            response['Content-Disposition'] = f'inline; filename="{rewiew_element.title}"'
+            #return FileResponse(open(url, 'rb'), content_type='application/pdf')
+            return response
+        except FileNotFoundError:
+            raise Http404()
+    raise Http404()
+
+def view_description(request):    
+    if User_Role.objects.values('user_role').get(user_id=request.user.id)['user_role'] == 'reviewer':
+        if request.POST:
+            selected_works = request.POST.getlist('selected_works')
+            print('k ', selected_works)
+            users_works =Review_Work.objects.select_related('work').values('work__title','status','description').filter(work_id__in=selected_works, user_id=request.user.id)
+            print('h ',users_works)
+
+            if not selected_works:
+                return redirect('reviewer_home')
+                
+            work_id_for_review=[Review_Work.objects.values('work_id').filter(user_id=request.user.id)]  
+            work=Work.objects.select_related('user').filter(id__in=work_id_for_review)
+            reviewers_data = User_Data.objects.filter(user_id=request.user.id)  
+            review_work = Review_Work.objects.filter(user_id=request.user.id)  
+
+            user_data_dict = {i.user_id: i.lastname for i in reviewers_data}
+            review_work_dict = {i.work_id: i.send_at for i in review_work}    
+            review_work_status_dict = {i.work_id: i.status for i in review_work} 
+            
+            one_data = Review_Work.objects.values('work_id', 'user_id')
+            works_authors = defaultdict(list)
+            for entry in one_data:
+                work_id = entry['work_id']
+                author_id = entry['user_id']
+                works_authors[work_id].append(user_data_dict.get(author_id))
+
+            works_authors = dict(works_authors)
+            reviewer_tasks = []
+            available_status=[]
+            for i in work:
+                reviewer_tasks.append({
+                    'id':i.id,
+                    'category': i.category, 
+                    'title': i.title,
+                    'authors': i.authors,
+                    'file': i.file,
+                    'file_size': i.file_size,
+                    'uploaded_at': i.uploaded_at,
+                    'user':i.user,
+
+                    #'lastname': user_data_dict.get(i.user_id, ""),
+                    'send_at': review_work_dict.get(i.id, ""),
+                    'lastname': works_authors.get(i.id, []),
+                    'status': review_work_status_dict.get(i.id, ""),
+                })
+                available_status.append(review_work_status_dict.get(i.id, ""))# Отримуємо унікальні типи для фільтра
+            available_status=set(available_status)
+        
+                # Отримуємо тип, за яким фільтруємо
+            work_status = request.GET.get("filter", "")
+
+            # Визначаємо, чи сортуємо за зростанням чи спаданням
+            sort_order = request.GET.get("order", "asc")  # За замовчуванням - зростання
+            reverse = sort_order == "desc"
+
+            # Фільтрація за типом
+            if work_status:
+                reviewer_tasks = [item for item in reviewer_tasks if item["status"] == work_status]
+
+            # Сортування за датою
+            reviewer_tasks.sort(key=lambda x: x["uploaded_at"], reverse=reverse)
+            
+            return render(request, 'base/reviewer_home.html', {'reviewer_tasks':reviewer_tasks, 'users_works': users_works,
+                                                            'available_status':available_status, "work_status": work_status,"selected_order": sort_order})
+
+        return redirect('reviewer_home')
+    raise Http404()
 
 
 @csrf_exempt
 def home(request):
-    '''if request.user.is_superuser:
-        return redirect('admin_view')'''
+    if request.user.is_superuser:
+        return redirect('admin_home')
     
-    print(request.user)
-    user_data=User_Data.objects.get(user=request.user)
-    #return render(request, "base/home.html", {'user_data': user_data})
+    if User_Role.objects.values('user_role').get(user_id=request.user.id)['user_role'] == 'user':
+        print(request.user)
+        user_data=User_Data.objects.get(user=request.user)
+        #return render(request, "base/home.html", {'user_data': user_data})
 
-    works=Work.objects.all().filter(user=request.user)
-    return render(request, "base/home.html", {'form': UploadWorkForm, 'works': works, 'user_data': user_data})
+        works=Work.objects.all().filter(user=request.user)
+        return render(request, "base/home.html", {'form': UploadWorkForm, 'works': works, 'user_data': user_data})
+    raise Http404()
 
 def user_profile(request):
     print(request.user)
@@ -722,12 +779,13 @@ def user_profile(request):
     return render(request, "base/user_profile.html", {'works': works, 'user_data': user_data})
 
 def edit_profile(request):
+    print('r ',request.user)
     user_data=User_Data.objects.get(user=request.user)
     print(request.FILES.get('avatar'))    #default delete
     
     try:
         if request.method == "POST":
-            User_Data.objects.get(user=request.user).delete()
+            User_Data.objects.get(id=request.user.id).delete()
             '''user_data.firstname=request.POST.get('firstname',''),
         user_data.lastname=request.POST.get('lastname',''),
         user_data.phone = PhoneNumber.from_string(request.POST.get("phone", "").strip(), region='US')
@@ -831,14 +889,14 @@ def deactivate_account(request,id):
 def upload(request): 
     try:
         #print("ID: ",request.user.id)
-        if request.user.is_superuser:
+        '''if request.user.is_superuser:
             user_data=User_Data.objects
-            return render(request, "base/upload.html", {'user_data': user_data})
+            return render(request, "base/upload.html", {'user_data': user_data})''' #?
     
         if request.method == "POST":
             if Work.objects.filter(title=request.POST['title']).exists():
                 messages.error(request, "Error: There is a work with this title")
-                return render(request, "base/home.html", status=400)
+                return redirect('home')
 
             Work.objects.create(
                     category=request.POST['category'],
@@ -883,6 +941,7 @@ def update(request, id):
             print('Qwertyuiop')
             # Забороняємо користувачу редагувати, якщо робота вже на перевірці
             if edit_element.status=='review':
+                messages.error(request, "You can't do that. Your work is under review",repr(e))
                 return redirect('home')
 
             file = request.FILES.get('file', edit_element.file)
@@ -914,6 +973,9 @@ def update(request, id):
 def delete(request, id):
     try:
         obj = Work.objects.get(id=id)
+        if obj.status=='review':
+            messages.error(request, "You can't do that. Your work is under review",repr(e))
+            return redirect('home')
         messages.success(request, 'Delete '+obj.title)
         obj.delete()
         os.remove(str(obj.file.path))
